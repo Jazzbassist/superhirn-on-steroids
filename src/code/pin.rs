@@ -1,6 +1,6 @@
 #[derive (PartialEq, Eq, Debug)]
 #[allow(dead_code)]
-enum PinColour {
+pub enum PinColour {
     Blue,
     Green,
     Yellow,
