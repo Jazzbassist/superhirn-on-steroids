@@ -1,14 +1,20 @@
 use std::fmt::Debug;
 
 use crate::code::pin::PinColour;
-const MAX_LENGTH: usize = 5;
+pub (crate) const MAX_LENGTH: usize = 5;
+
+pub (crate) trait Code {
+    fn set_pin ( &mut self, at_position: usize, colour: PinColour );
+    fn new () -> Self;
+    fn compare (&self, other: &Self) -> bool;
+}
 
 #[derive (Debug, PartialEq, Eq)]
-pub(crate) struct BasicCode {
+struct BasicCode {
     pins: Vec<PinColour>,
 }
 
-impl BasicCode {
+impl Code for BasicCode {
     fn set_pin ( &mut self, at_position: usize, colour: PinColour ){
         if at_position > MAX_LENGTH {
             panic!("Cannot set Pin at position greater than board");
