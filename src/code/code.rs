@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt::Debug;
 
 use crate::code::feedback::*;
@@ -46,8 +47,6 @@ impl Code for BasicCode {
         let these = self.pins.clone();
         let those = guessed.pins.clone();
 
-        let mut these_remaining: Vec<PinColour> = Vec::new();
-        let mut those_remaining: Vec<PinColour> = Vec::new();
         
         let mut correct_positions: usize = 0;
         for pos in 0..MAX_LENGTH {
@@ -55,24 +54,20 @@ impl Code for BasicCode {
             if these[pos] == those[pos] {
                 correct_positions+=1;
             }
-            else {
-                these_remaining.push(these[pos]);
-                those_remaining.push(those[pos]);
-            }
         }
-
+        let mut secret_code_counts = HashMap::new();
+        let mut guess_counts = HashMap::new();
+        for colour in these {
+            *secret_code_counts.entry(colour).or_insert(0) += 1;
+        }
+        for colour in those {
+            *guess_counts.entry(colour).or_insert(0) += 1;
+        }
         let mut correct_colours: usize = 0;
-        for (_that_pos, that_colour) in those_remaining.iter_mut().enumerate() {
-            for (this_pos, this_colour) in these_remaining.iter_mut().enumerate() {
-                //println!("comparing {} and {}. Equal: {}", that_colour, this_colour, that_colour==this_colour);
-                if that_colour == this_colour {
-                    correct_colours+=1;
-                    these_remaining.remove(this_pos);
-                    break;
-                }
-            }
-
+        for (color, count) in secret_code_counts.iter() {
+            correct_colours += std::cmp::min(count, guess_counts.get(color).unwrap_or(&0));
         }
+        correct_colours -= correct_positions;
 
         Box::new(BasicFeedback::new(correct_positions, correct_colours))
     }
@@ -117,7 +112,8 @@ mod tests {
 
         let feedback = code1.compare(&code2);
         assert!(feedback.is_correct());
-        feedback.display();
+        assert_eq!(5, feedback.correct_positions());
+        assert_eq!(0, feedback.correct_colours());
 
         let mut code1 = BasicCode::new();
         code1.set_pin(0, PinColour::Black);
@@ -136,6 +132,7 @@ mod tests {
 
         let feedback = code1.compare(&code2);
         assert!(!feedback.is_correct());
-        feedback.display();
+        assert_eq!(3, feedback.correct_positions());
+        assert_eq!(1, feedback.correct_colours());
     }
 }
