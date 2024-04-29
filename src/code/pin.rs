@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-#[derive (PartialEq, Eq, Debug, Copy, Clone)]
+#[derive (PartialEq, Eq, Debug, Copy, Clone, Hash)]
 #[allow(dead_code)]
 pub enum PinColour {
     Blue,
