@@ -3,3 +3,4 @@ mod code {
     mod code;
     mod feedback;
 }
+mod game;
