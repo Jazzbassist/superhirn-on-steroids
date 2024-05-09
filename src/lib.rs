@@ -1,6 +1,6 @@
 mod code {
     mod pin;
-    mod code;
+    pub mod code;
     mod feedback;
 }
 mod game;

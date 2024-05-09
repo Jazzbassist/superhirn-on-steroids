@@ -1,6 +1,6 @@
 use crate::code;
 
-pub (crate) trait Feedback {
+pub trait Feedback {
     fn correct_colours(&self) -> usize;
     fn correct_positions(&self) -> usize;
     fn is_correct(&self) -> bool;

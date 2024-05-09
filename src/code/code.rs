@@ -6,7 +6,7 @@ use crate::code::pin::PinColour;
 
 pub (crate) const MAX_LENGTH: usize = 5;
 
-pub (crate) trait Code {
+pub trait Code {
     fn set_pin ( &mut self, at_position: usize, colour: PinColour );
     fn new () -> Self;
     fn compare (&self, guessed: &Self) -> Box<dyn Feedback>;
@@ -14,7 +14,7 @@ pub (crate) trait Code {
 }
 
 #[derive (Debug, PartialEq, Eq)]
-struct BasicCode {
+pub struct BasicCode {
     pins: Vec<PinColour>,
 }
 
