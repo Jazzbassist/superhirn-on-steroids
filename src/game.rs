@@ -1,3 +1,5 @@
+use crate::code::code::{BasicCode, Code};
+
 enum GameState {
     Start,
     DefineCode,
@@ -7,8 +9,18 @@ enum GameState {
 }
 
 enum Player {
-    Encoder,
-    Guesser,
+    Encoder(BasicCode),
+    Guesser(BasicCode),
+}
+
+impl Player {
+    fn encoder() -> Player {
+        Player::Encoder(BasicCode::new())
+    }
+
+    fn guesser() -> Player {
+        Player::Guesser(BasicCode::new())
+    }
 }
 
 impl GameState {
@@ -38,8 +50,8 @@ impl GameState {
     }
     fn active_player(&self) -> Player {
         match *self {
-            GameState::GuessCode | GameState::End => Player::Guesser,
-            _ => Player::Encoder
+            GameState::GuessCode | GameState::End => Player::guesser(),
+            _ => Player::encoder()
         }
     }
 }
