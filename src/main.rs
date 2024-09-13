@@ -4,26 +4,31 @@ mod display;
 
 use game::*;
 use display::*;
+use std::io;
 
 fn main() {
-    let mut input_source = StdInput;
-
     println!("Player 1, enter the secret code (digits only):");
-    let secret = input_source.read_line();
+
+    let mut secret = String::new();
+    io::stdin()
+        .read_line(&mut secret)
+        .expect("Failed to read secret");
+
+    let secret = secret.trim().to_string();
 
     if !secret.chars().all(|c| c.is_digit(10)) {
         println!("The secret must be composed of digits only!");
         return;
     }
 
-    let mut game = Game::new(secret, input_source);
+    let mut game = Game::new(secret);
 
     main_game_loop(&mut game);
 }
 
-fn main_game_loop(game: &mut Game<StdInput>) {
+fn main_game_loop(game: &mut Game) {
     loop {
-        let guess = match read_guess(game.secret.len(), &mut game.input_source) {
+        let guess = match read_guess(game.secret.len()) {
             Some(value) => value,
             None => continue,
         };
@@ -43,9 +48,13 @@ fn main_game_loop(game: &mut Game<StdInput>) {
     }
 }
 
-fn read_guess(secret_len: usize, input_source: &mut impl InputSource) -> Option<String> {
+fn read_guess(secret_len: usize) -> Option<String> {
     println!("Player 2, enter your guess ({} digits):", secret_len);
-    let guess = input_source.read_line();
+    let mut guess = String::new();
+    io::stdin()
+        .read_line(&mut guess)
+        .expect("Failed to read input");
+    let guess = guess.trim().to_string();
     if guess.len() != secret_len {
         println!("Your guess must be {} digits long!", secret_len);
         None
@@ -54,10 +63,15 @@ fn read_guess(secret_len: usize, input_source: &mut impl InputSource) -> Option<
     }
 }
 
-fn read_new_secret(game: &mut Game<StdInput>) {
+fn read_new_secret(game: &mut Game) {
     loop {
         println!("Enter the new secret code (digits only):");
-        let new_secret = game.input_source.read_line();
+        let mut new_secret = String::new();
+        io::stdin()
+            .read_line(&mut new_secret)
+            .expect("Failed to read new secret");
+
+        let new_secret = new_secret.trim().to_string();
 
         match game.update_secret(new_secret.clone()) {
             SecretChangeResponse::Valid => {
