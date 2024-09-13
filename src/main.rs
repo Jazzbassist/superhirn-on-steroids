@@ -38,17 +38,19 @@ fn main_game_loop(game: &mut Game) {
             break;
         }
 
+        'fetch_new_secret: loop {
         let new_secret = read_new_secret("Player 1");
 
         match game.update_secret(new_secret.clone()) {
             SecretChangeResponse::Valid => {
                 display_message("Player 1", SecretChangeResponse::Valid.message());
-                break;
+                break 'fetch_new_secret;
             },
             SecretChangeResponse::Invalid(msg) => {
                 display_message("Player 1", &msg);
-                continue; // Allow Player 1 to try again
+                continue 'fetch_new_secret; // Allow Player 1 to try again
             },
         }
+    }
     }
 }
