@@ -66,6 +66,7 @@ impl SecretChangeResponse {
     }
 }
 
+
 // Function to score the guess against the secret
 fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
     let bulls = secret
