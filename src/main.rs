@@ -1,4 +1,5 @@
 use std::io;
+use colored::*;  // Import the colored crate
 
 fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
     let mut bulls = 0;
@@ -35,9 +36,7 @@ fn main() {
 
     // Read the secret code input as plain text
     let mut secret = String::new();
-    io::stdin()
-        .read_line(&mut secret)
-        .expect("Failed to read secret");
+    io::stdin().read_line(&mut secret).expect("Failed to read secret");
 
     // Trim any extra whitespace or newline from the input
     let secret = secret.trim().to_string();
@@ -57,9 +56,7 @@ fn main() {
 
         // Read Player 2's guess
         let mut guess = String::new();
-        io::stdin()
-            .read_line(&mut guess)
-            .expect("Failed to read input");
+        io::stdin().read_line(&mut guess).expect("Failed to read input");
 
         // Trim the guess input
         let guess = guess.trim().to_string();
@@ -67,7 +64,7 @@ fn main() {
         // Ensure the guess has the same length as the secret
         if guess.len() != secret.len() {
             println!("Your guess must be {} digits long!", secret.len());
-            continue; // If invalid, prompt again
+            continue;  // If invalid, prompt again
         }
 
         // Score the guess
@@ -79,16 +76,32 @@ fn main() {
         // Store the guess and its score in the history
         previous_guesses.push((guess.clone(), (bulls, cows)));
 
-        // Print previous guesses and their scores for Player 1's reference
-        println!("Previous guesses:");
-        for (g, (b, c)) in &previous_guesses {
-            println!("Guess: {}, Bulls: {}, Cows: {}", g, b, c);
+        // Provide feedback by highlighting the bulls and cows in the guess
+        print!("Feedback on guess: ");
+        for (s_char, g_char) in secret.chars().zip(guess.chars()) {
+            if s_char == g_char {
+                // Bulls: correct digit and correct position (green)
+                print!("{}", g_char.to_string().green());
+            } else if secret.contains(g_char) {
+                // Cows: correct digit, wrong position (yellow)
+                print!("{}", g_char.to_string().yellow());
+            } else {
+                // Incorrect digit: leave uncolored
+                print!("{}", g_char);
+            }
         }
+        println!(); // Newline after feedback
 
         // Check if the guess is correct (all bulls)
         if bulls == secret.len() {
             println!("Congratulations! You've guessed the secret.");
             break;
+        }
+
+        // Show previous guesses and their scores for Player 1's reference
+        println!("Previous guesses:");
+        for (g, (b, c)) in &previous_guesses {
+            println!("Guess: {}, Bulls: {}, Cows: {}", g, b, c);
         }
     }
 }
