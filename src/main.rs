@@ -28,6 +28,18 @@ impl Game {
             return SecretChangeResponse::Invalid("The new secret must be composed of digits only.");
         }
 
+        let mismatches = self.validate_secret(&new_secret);
+
+        if mismatches.is_empty() {
+            self.secret = new_secret;
+            SecretChangeResponse::Valid
+        } else {
+            let feedback = format_mismatch_feedback(mismatches, &new_secret);
+            SecretChangeResponse::Invalid(&feedback)
+        }
+    }
+
+    fn validate_secret(&self, new_secret: &str) -> Vec<(String, usize, usize, usize, usize)> {
         let mut mismatches = Vec::new();
         for (prev_guess, (prev_bulls, prev_cows)) in &self.previous_guesses {
             let (new_bulls, new_cows) = score_guess(&new_secret, prev_guess);
@@ -35,14 +47,7 @@ impl Game {
                 mismatches.push((prev_guess.clone(), *prev_bulls, *prev_cows, new_bulls, new_cows));
             }
         }
-
-        if mismatches.is_empty() {
-            self.secret = new_secret;
-            SecretChangeResponse::Valid
-        } else {
-            print_mismatch_feedback(mismatches, &new_secret);
-            SecretChangeResponse::Invalid("The new secret does not match the score for previous guesses.")
-        }
+        mismatches
     }
 }
 
@@ -85,23 +90,31 @@ fn print_feedback(guess: &str, secret: &str) {
     }
 }
 
-// Function to print mismatch feedback
-fn print_mismatch_feedback(
+// Function to format mismatch feedback into a String
+fn format_mismatch_feedback(
     mismatches: Vec<(String, usize, usize, usize, usize)>,
     new_secret: &str,
-) {
-    println!("The new secret does not match the score for these guesses:");
+) -> String {
+    let mut feedback = String::from("The new secret does not match the score for these guesses:\n");
     for (guess, expected_bulls, expected_cows, actual_bulls, actual_cows) in mismatches {
-        print!("Guess: ");
-        print_feedback(&guess, new_secret);
-        println!(
-            ", Expected {} bulls and {} cows, Found {} bulls and {} cows",
-            expected_bulls,
-            expected_cows,
-            actual_bulls,
-            actual_cows
-        );
+        feedback.push_str("Guess: ");
+        let mut guess_display = String::new();
+        for (s_char, g_char) in new_secret.chars().zip(guess.chars()) {
+            if s_char == g_char {
+                guess_display.push_str(&g_char.to_string().green().to_string());
+            } else if new_secret.contains(g_char) {
+                guess_display.push_str(&g_char.to_string().yellow().to_string());
+            } else {
+                guess_display.push(g_char);
+            }
+        }
+        feedback.push_str(&guess_display);
+        feedback.push_str(&format!(
+            ", Expected {} bulls and {} cows, Found {} bulls and {} cows\n",
+            expected_bulls, expected_cows, actual_bulls, actual_cows
+        ));
     }
+    feedback
 }
 
 // Function to read a guess from the player
