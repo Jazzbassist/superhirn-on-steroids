@@ -1,5 +1,5 @@
 // game.rs
-use crate::ui::{format_mismatch_feedback, Player};
+use crate::ui::format_mismatch_feedback;
 
 pub struct Game {
     pub secret: String,
