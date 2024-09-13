@@ -52,15 +52,6 @@ enum SecretChangeResponse {
     Invalid(&'static str),
 }
 
-impl SecretChangeResponse {
-    fn message(&self) -> &str {
-        match self {
-            SecretChangeResponse::Valid => "Secret updated successfully.",
-            SecretChangeResponse::Invalid(msg) => msg,
-        }
-    }
-}
-
 // Function to score the guess against the secret
 fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
     let bulls = secret
@@ -121,7 +112,7 @@ fn read_guess(secret_len: usize) -> Option<String> {
 }
 
 // Function to read a new secret code
-fn read_new_secret(secret: &mut String, previous_guesses: &Vec<(String, (usize, usize))>) {
+fn read_new_secret(game: &mut Game) {
     loop {
         println!("Enter the new secret code (digits only):");
         let mut new_secret = String::new();
@@ -131,7 +122,7 @@ fn read_new_secret(secret: &mut String, previous_guesses: &Vec<(String, (usize, 
 
         let new_secret = new_secret.trim().to_string();
 
-        match Game::new(new_secret.clone()).update_secret(new_secret) {
+        match game.update_secret(new_secret) {
             SecretChangeResponse::Valid => break,
             SecretChangeResponse::Invalid(msg) => println!("{}", msg),
         }
@@ -176,7 +167,7 @@ fn main_game_loop(game: &mut Game) {
         let response = ask_to_change_secret();
 
         if response == "yes" {
-            read_new_secret(&mut game.secret, &game.previous_guesses);
+            read_new_secret(game);
         }
     }
 }
