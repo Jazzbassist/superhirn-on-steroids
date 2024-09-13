@@ -1,16 +1,18 @@
 // game.rs
 use colored::Colorize; // Import the Colorize trait
 
-pub struct Game {
+pub struct Game<T: InputSource> {
     pub secret: String,
     pub previous_guesses: Vec<(String, (usize, usize))>,
+    input_source: T,
 }
 
-impl Game {
-    pub fn new(secret: String) -> Self {
+impl<T: InputSource> Game<T> {
+    pub fn new(secret: String, input_source: T) -> Self {
         Self {
             secret,
             previous_guesses: Vec::new(),
+            input_source,
         }
     }
 
@@ -47,6 +49,22 @@ impl Game {
             }
         }
         mismatches
+    }
+}
+
+pub trait InputSource {
+    fn read_line(&mut self) -> String;
+}
+
+pub struct StdInput;
+
+impl InputSource for StdInput {
+    fn read_line(&mut self) -> String {
+        let mut input = String::new();
+        std::io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read input");
+        input.trim().to_string()
     }
 }
 
