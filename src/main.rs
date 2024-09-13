@@ -1,10 +1,10 @@
 // main.rs
-mod game;
 mod display;
+mod game;
 mod input;
 
-use game::*;
 use display::*;
+use game::*;
 use input::*;
 
 fn main() {
@@ -33,13 +33,11 @@ fn main_game_loop(game: &mut Game) {
         display_message("Player 2", &format!("Bulls: {}, Cows: {}", bulls, cows));
         game.add_guess(guess.clone(), (bulls, cows));
 
-
         if bulls == game.secret.len() {
             display_message("Player 2", "Congratulations! You've guessed the secret.");
             display_previous_guesses("Player 2", &game.previous_guesses, &game.secret, true);
             break;
         }
-
 
         // Show guesses with color after secret is updated
         display_previous_guesses("Player 1", &game.previous_guesses, &game.secret, true);
@@ -50,11 +48,11 @@ fn main_game_loop(game: &mut Game) {
                 SecretChangeResponse::Valid => {
                     display_message("Player 1", SecretChangeResponse::Valid.message());
                     break 'fetch_new_secret;
-                },
+                }
                 SecretChangeResponse::Invalid(msg) => {
                     display_message("Player 1", &msg);
                     continue 'fetch_new_secret; // Allow Player 1 to try again
-                },
+                }
             }
         }
     }
