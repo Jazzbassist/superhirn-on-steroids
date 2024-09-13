@@ -21,11 +21,11 @@ impl Game {
 
     fn update_secret(&mut self, new_secret: String) -> SecretChangeResponse {
         if new_secret.len() != self.secret.len() {
-            return SecretChangeResponse::Invalid("The new secret must be the same length as the original secret.");
+            return SecretChangeResponse::Invalid("The new secret must be the same length as the original secret.".to_string());
         }
 
         if !new_secret.chars().all(|c| c.is_digit(10)) {
-            return SecretChangeResponse::Invalid("The new secret must be composed of digits only.");
+            return SecretChangeResponse::Invalid("The new secret must be composed of digits only.".to_string());
         }
 
         let mismatches = self.validate_secret(&new_secret);
@@ -35,7 +35,7 @@ impl Game {
             SecretChangeResponse::Valid
         } else {
             let feedback = format_mismatch_feedback(mismatches, &new_secret);
-            SecretChangeResponse::Invalid(&feedback)
+            SecretChangeResponse::Invalid(feedback)
         }
     }
 
@@ -54,14 +54,14 @@ impl Game {
 // Enum to handle responses for secret changes
 enum SecretChangeResponse {
     Valid,
-    Invalid(&'static str),
+    Invalid(String), // Change from &'static str to String
 }
 
 impl SecretChangeResponse {
     fn message(&self) -> &str {
         match self {
             SecretChangeResponse::Valid => "Secret updated successfully.",
-            SecretChangeResponse::Invalid(msg) => msg,
+            SecretChangeResponse::Invalid(msg) => &msg,
         }
     }
 }
