@@ -47,6 +47,7 @@ fn main_game_loop(game: &mut Game) {
             },
             SecretChangeResponse::Invalid(msg) => {
                 display_message("Player 1", &msg);
+                continue; // Allow Player 1 to try again
             },
         }
     }
