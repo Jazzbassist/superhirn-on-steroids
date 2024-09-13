@@ -72,7 +72,6 @@ fn read_guess(secret: &str) -> Option<String> {
     }
     Some(guess)
 }
-
 fn read_new_secret(secret: &mut String, previous_guesses: &Vec<(String, (usize, usize))>) {
     loop {
         println!("Enter the new secret code (digits only):");
@@ -93,30 +92,45 @@ fn read_new_secret(secret: &mut String, previous_guesses: &Vec<(String, (usize, 
             continue;
         }
 
-        // Validate the new secret against previous guesses and provide feedback
-        let mut valid = true;
+        // Collect guesses that do not match the new secret's scoring
+        let mut mismatches = Vec::new();
         for (prev_guess, (prev_bulls, prev_cows)) in previous_guesses {
             let (new_bulls, new_cows) = score_guess(&new_secret, prev_guess);
             if new_bulls != *prev_bulls || new_cows != *prev_cows {
-                println!(
-                    "New secret does not match the score for guess: {}",
-                    prev_guess
-                );
-                valid = false;
-                break;
+                mismatches.push((prev_guess.clone(), *prev_bulls, *prev_cows, new_bulls, new_cows));
             }
         }
 
-        if valid {
-            // Update the secret
+        if mismatches.is_empty() {
+            // Update the secret if no mismatches were found
             *secret = new_secret;
             break;
         } else {
-            println!("The new secret was invalid. Here is the detailed feedback:");
-            final_feedback(previous_guesses, &new_secret);
+            // Display detailed feedback for mismatches with color coding
+            println!("New secret does not match the score for these guesses:");
+            for (guess, expected_bulls, expected_cows, actual_bulls, actual_cows) in mismatches {
+                print!("Guess: ");
+                for (s_char, g_char) in new_secret.chars().zip(guess.chars()) {
+                    if s_char == g_char {
+                        print!("{}", g_char.to_string().green());
+                    } else if new_secret.contains(g_char) {
+                        print!("{}", g_char.to_string().yellow());
+                    } else {
+                        print!("{}", g_char);
+                    }
+                }
+                println!(
+                    ", Expected {} bulls and {} cows, Found {} bulls and {} cows",
+                    expected_bulls,
+                    expected_cows,
+                    actual_bulls,
+                    actual_cows
+                );
+            }
         }
     }
 }
+
 
 fn ask_to_change_secret() -> String {
     // Allow Player 1 to change the secret
