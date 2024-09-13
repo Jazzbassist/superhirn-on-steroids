@@ -1,15 +1,5 @@
-use std::io;
-use colored::*;  // Import the colored crate
-
-// Score guess function (for reference, unchanged)
-fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
-    let bulls = secret.chars().zip(guess.chars()).filter(|(s, g)| s == g).count();
-    let cows = guess
-        .chars()
-        .filter(|g| secret.contains(*g))
-        .count() - bulls;
-    (bulls, cows)
-}
+use colored::*;
+use std::io; // Import the colored crate
 
 fn main() {
     // Player 1 enters the secret code, which is now visible
@@ -17,7 +7,9 @@ fn main() {
 
     // Read the secret code input as plain text
     let mut secret = String::new();
-    io::stdin().read_line(&mut secret).expect("Failed to read secret");
+    io::stdin()
+        .read_line(&mut secret)
+        .expect("Failed to read secret");
 
     // Trim any extra whitespace or newline from the input
     let mut secret = secret.trim().to_string();
@@ -34,7 +26,7 @@ fn main() {
     main_game_loop(&mut secret, &mut previous_guesses);
 
     final_feedback(previous_guesses, secret);
-    }
+}
 
 fn main_game_loop(secret: &mut String, previous_guesses: &mut Vec<(String, (usize, usize))>) {
     loop {
@@ -70,7 +62,9 @@ fn main_game_loop(secret: &mut String, previous_guesses: &mut Vec<(String, (usiz
 fn read_guess(secret: &String) -> Option<String> {
     println!("Player 2, enter your guess ({} digits):", secret.len());
     let mut guess = String::new();
-    io::stdin().read_line(&mut guess).expect("Failed to read input");
+    io::stdin()
+        .read_line(&mut guess)
+        .expect("Failed to read input");
     let guess = guess.trim().to_string();
     if guess.len() != secret.len() {
         println!("Your guess must be {} digits long!", secret.len());
@@ -83,7 +77,9 @@ fn read_new_secret(secret: &mut String, previous_guesses: &Vec<(String, (usize, 
     loop {
         println!("Enter the new secret code (digits only):");
         let mut new_secret = String::new();
-        io::stdin().read_line(&mut new_secret).expect("Failed to read new secret");
+        io::stdin()
+            .read_line(&mut new_secret)
+            .expect("Failed to read new secret");
 
         let new_secret = new_secret.trim().to_string();
 
@@ -102,7 +98,10 @@ fn read_new_secret(secret: &mut String, previous_guesses: &Vec<(String, (usize, 
         for (prev_guess, (prev_bulls, prev_cows)) in previous_guesses {
             let (new_bulls, new_cows) = score_guess(&new_secret, prev_guess);
             if new_bulls != *prev_bulls || new_cows != *prev_cows {
-                println!("New secret does not match the score for guess: {}", prev_guess);
+                println!(
+                    "New secret does not match the score for guess: {}",
+                    prev_guess
+                );
                 valid = false;
                 break;
             }
@@ -122,12 +121,14 @@ fn ask_to_change_secret() -> String {
     // Allow Player 1 to change the secret
     println!("Would you like to change the secret? (yes/no):");
     let mut response = String::new();
-    io::stdin().read_line(&mut response).expect("Failed to read input");
+    io::stdin()
+        .read_line(&mut response)
+        .expect("Failed to read input");
     let response = response.trim().to_lowercase();
     response
-    }
-    
-    fn final_feedback(previous_guesses: Vec<(String, (usize, usize))>, secret: String) {
+}
+
+fn final_feedback(previous_guesses: Vec<(String, (usize, usize))>, secret: String) {
     // Display final feedback
     println!("\nFinal Feedback:");
     for (guess, _) in &previous_guesses {
@@ -143,4 +144,15 @@ fn ask_to_change_secret() -> String {
         }
         println!();
     }
-    }
+}
+
+// Score guess function (for reference, unchanged)
+fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
+    let bulls = secret
+        .chars()
+        .zip(guess.chars())
+        .filter(|(s, g)| s == g)
+        .count();
+    let cows = guess.chars().filter(|g| secret.contains(*g)).count() - bulls;
+    (bulls, cows)
+}
