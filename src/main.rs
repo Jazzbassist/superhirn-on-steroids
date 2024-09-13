@@ -52,6 +52,15 @@ enum SecretChangeResponse {
     Invalid(&'static str),
 }
 
+impl SecretChangeResponse {
+    fn message(&self) -> &str {
+        match self {
+            SecretChangeResponse::Valid => "Secret updated successfully.",
+            SecretChangeResponse::Invalid(msg) => msg,
+        }
+    }
+}
+
 // Function to score the guess against the secret
 fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
     let bulls = secret
@@ -122,9 +131,14 @@ fn read_new_secret(game: &mut Game) {
 
         let new_secret = new_secret.trim().to_string();
 
-        match game.update_secret(new_secret) {
-            SecretChangeResponse::Valid => break,
-            SecretChangeResponse::Invalid(msg) => println!("{}", msg),
+        match game.update_secret(new_secret.clone()) {
+            SecretChangeResponse::Valid => {
+                println!("{}", SecretChangeResponse::Valid.message());
+                break;
+            },
+            SecretChangeResponse::Invalid(msg) => {
+                println!("{}", msg);
+            },
         }
     }
 }
