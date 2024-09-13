@@ -1,3 +1,4 @@
+use rpassword::read_password;
 use std::io;
 
 fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
@@ -9,7 +10,7 @@ fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
     let mut guess_counts = [0; 10];
 
     // First, count the bulls (correct digit, correct position)
-    for (_i, (s_char, g_char)) in secret.chars().zip(guess.chars()).enumerate() {
+    for (i, (s_char, g_char)) in secret.chars().zip(guess.chars()).enumerate() {
         if s_char == g_char {
             bulls += 1;
         } else {
@@ -30,11 +31,20 @@ fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
 }
 
 fn main() {
-    // Secret and guess should have the same length
-    let secret = "1234"; // You can hardcode it or randomly generate
+    // Secret input by player 1, hidden from view
+    println!("Player 1, enter the secret code (digits only):");
+
+    // Use rpassword to hide the input
+    let secret = read_password().expect("Failed to read secret");
+
+    // Ensure secret is a valid digit string
+    if !secret.chars().all(|c| c.is_digit(10)) {
+        println!("The secret must be composed of digits only!");
+        return;
+    }
 
     loop {
-        println!("Enter your guess ({} digits):", secret.len());
+        println!("Player 2, enter your guess ({} digits):", secret.len());
 
         // Read user input
         let mut guess = String::new();
@@ -52,7 +62,7 @@ fn main() {
         }
 
         // Score the guess
-        let (bulls, cows) = score_guess(secret, guess);
+        let (bulls, cows) = score_guess(&secret, guess);
 
         // Print the result
         println!("Bulls: {}, Cows: {}", bulls, cows);
