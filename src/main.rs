@@ -70,14 +70,23 @@ fn main() {
         // Score the guess
         let (bulls, cows) = score_guess(&secret, &guess);
 
-        // Display result
+        // Display result (only bulls and cows count for now)
         println!("Bulls: {}, Cows: {}", bulls, cows);
 
         // Store the guess and its score in the history
         previous_guesses.push((guess.clone(), (bulls, cows)));
 
-        // Provide feedback by highlighting the bulls and cows in the guess
-        print!("Feedback on guess: ");
+        // Check if the guess is correct (all bulls)
+        if bulls == secret.len() {
+            println!("Congratulations! You've guessed the secret.");
+            break;
+        }
+    }
+
+    // After the game is won, display detailed feedback for all previous guesses
+    println!("\nFinal Feedback:");
+    for (guess, _) in &previous_guesses {
+        print!("Guess: ");
         for (s_char, g_char) in secret.chars().zip(guess.chars()) {
             if s_char == g_char {
                 // Bulls: correct digit and correct position (green)
@@ -90,18 +99,6 @@ fn main() {
                 print!("{}", g_char);
             }
         }
-        println!(); // Newline after feedback
-
-        // Check if the guess is correct (all bulls)
-        if bulls == secret.len() {
-            println!("Congratulations! You've guessed the secret.");
-            break;
-        }
-
-        // Show previous guesses and their scores for Player 1's reference
-        println!("Previous guesses:");
-        for (g, (b, c)) in &previous_guesses {
-            println!("Guess: {}, Bulls: {}, Cows: {}", g, b, c);
-        }
+        println!();  // Newline after each guess feedback
     }
 }
