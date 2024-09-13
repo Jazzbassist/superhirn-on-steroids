@@ -24,6 +24,7 @@ fn main_game_loop(game: &mut Game) {
     loop {
         // Show guesses without color during the game
         display_previous_guesses("Player 2", &game.previous_guesses, &game.secret, false);
+
         let guess = match read_guess("Player 2", game.secret.len()) {
             Some(value) => value,
             None => continue,
@@ -41,6 +42,7 @@ fn main_game_loop(game: &mut Game) {
 
         // Show guesses with color after secret is updated
         display_previous_guesses("Player 1", &game.previous_guesses, &game.secret, true);
+
         'fetch_new_secret: loop {
             let new_secret = read_new_secret("Player 1");
 
