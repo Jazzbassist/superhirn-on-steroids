@@ -40,13 +40,16 @@ fn main() {
         .expect("Failed to read secret");
 
     // Trim any extra whitespace or newline from the input
-    let secret = secret.trim();
+    let secret = secret.trim().to_string();
 
     // Ensure the secret is composed only of digits
     if !secret.chars().all(|c| c.is_digit(10)) {
         println!("The secret must be composed of digits only!");
         return;
     }
+
+    // Vector to store previous guesses and their scores
+    let mut previous_guesses: Vec<(String, (usize, usize))> = Vec::new();
 
     // Main game loop with Player 2 guessing
     loop {
@@ -59,7 +62,7 @@ fn main() {
             .expect("Failed to read input");
 
         // Trim the guess input
-        let guess = guess.trim();
+        let guess = guess.trim().to_string();
 
         // Ensure the guess has the same length as the secret
         if guess.len() != secret.len() {
@@ -68,10 +71,19 @@ fn main() {
         }
 
         // Score the guess
-        let (bulls, cows) = score_guess(&secret, guess);
+        let (bulls, cows) = score_guess(&secret, &guess);
 
         // Display result
         println!("Bulls: {}, Cows: {}", bulls, cows);
+
+        // Store the guess and its score in the history
+        previous_guesses.push((guess.clone(), (bulls, cows)));
+
+        // Print previous guesses and their scores for Player 1's reference
+        println!("Previous guesses:");
+        for (g, (b, c)) in &previous_guesses {
+            println!("Guess: {}, Bulls: {}, Cows: {}", g, b, c);
+        }
 
         // Check if the guess is correct (all bulls)
         if bulls == secret.len() {
