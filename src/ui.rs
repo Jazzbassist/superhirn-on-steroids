@@ -41,6 +41,18 @@ pub fn format_guess_for_display(guess: &str, secret: &str, colorify: bool) -> St
     }
 }
 
+pub fn format_mismatch_feedback(mismatches: &[(String, (usize, usize))], secret: &str) -> String {
+    let mut feedback = "New secret does not match the score for these guesses:\n".to_string();
+    for (guess, (expected_bulls, expected_cows)) in mismatches {
+        let formatted_guess = format_guess_for_display(guess, secret, true);
+        feedback.push_str(&format!(
+            "Guess: {}, Expected {} bulls and {} cows\n",
+            formatted_guess, expected_bulls, expected_cows
+        ));
+    }
+    feedback
+}
+
 pub fn display_message(player: &Player, message: &str) {
     println!("{}: {}", player.colored_name(), message);
 }

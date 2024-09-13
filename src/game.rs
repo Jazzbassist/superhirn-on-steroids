@@ -1,4 +1,6 @@
 // game.rs
+use crate::ui::{format_mismatch_feedback, Player};
+
 pub struct Game {
     pub secret: String,
     pub previous_guesses: Vec<(String, (usize, usize))>,
@@ -26,19 +28,23 @@ impl Game {
         }
 
         // Validate new secret against previous guesses
-        for (prev_guess, (prev_bulls, prev_cows)) in &self.previous_guesses {
-            let (new_bulls, new_cows) = score_guess(&new_secret, prev_guess);
-            if new_bulls != *prev_bulls || new_cows != *prev_cows {
-                let feedback = format_mismatch_feedback(
-                    &[(prev_guess.clone(), (*prev_bulls, *prev_cows))],
-                    &new_secret,
-                );
-                return SecretChangeResponse::Invalid(feedback);
-            }
-        }
+        let mismatches: Vec<(String, (usize, usize))> = self.previous_guesses.iter()
+            .filter_map(|(prev_guess, (prev_bulls, prev_cows))| {
+                let (new_bulls, new_cows) = score_guess(&new_secret, prev_guess);
+                if new_bulls != *prev_bulls || new_cows != *prev_cows {
+                    Some((prev_guess.clone(), (*prev_bulls, *prev_cows)))
+                } else {
+                    None
+                }
+            })
+            .collect();
 
-        self.secret = new_secret;
-        SecretChangeResponse::Valid
+        if mismatches.is_empty() {
+            self.secret = new_secret;
+            SecretChangeResponse::Valid
+        } else {
+            SecretChangeResponse::Invalid(format_mismatch_feedback(&mismatches, &new_secret))
+        }
     }
 }
 
