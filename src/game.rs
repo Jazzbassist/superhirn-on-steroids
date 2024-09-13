@@ -1,6 +1,4 @@
 // game.rs
-use colored::Colorize; // Import the Colorize trait
-
 pub struct Game {
     pub secret: String,
     pub previous_guesses: Vec<(String, (usize, usize))>,
@@ -8,7 +6,7 @@ pub struct Game {
 
 impl Game {
     pub fn new(secret: String) -> Self {
-        Self {
+        Game {
             secret,
             previous_guesses: Vec::new(),
         }
@@ -20,47 +18,27 @@ impl Game {
 
     pub fn update_secret(&mut self, new_secret: String) -> SecretChangeResponse {
         if new_secret.len() != self.secret.len() {
-            return SecretChangeResponse::Invalid("The new secret must be the same length as the original secret.".to_string());
+            return SecretChangeResponse::Invalid("New secret length mismatch.".to_string());
         }
 
         if !new_secret.chars().all(|c| c.is_digit(10)) {
-            return SecretChangeResponse::Invalid("The new secret must be composed of digits only.".to_string());
+            return SecretChangeResponse::Invalid("New secret must be composed of digits only.".to_string());
         }
 
-        let mismatches = self.validate_secret(&new_secret);
-
-        if mismatches.is_empty() {
-            self.secret = new_secret;
-            SecretChangeResponse::Valid
-        } else {
-            let feedback = format_mismatch_feedback(mismatches, &new_secret);
-            SecretChangeResponse::Invalid(feedback)
-        }
-    }
-
-    fn validate_secret(&self, new_secret: &str) -> Vec<(String, usize, usize, usize, usize)> {
-        let mut mismatches = Vec::new();
+        // Validate new secret against previous guesses
         for (prev_guess, (prev_bulls, prev_cows)) in &self.previous_guesses {
             let (new_bulls, new_cows) = score_guess(&new_secret, prev_guess);
             if new_bulls != *prev_bulls || new_cows != *prev_cows {
-                mismatches.push((prev_guess.clone(), *prev_bulls, *prev_cows, new_bulls, new_cows));
+                let feedback = format_mismatch_feedback(
+                    &[(prev_guess.clone(), (*prev_bulls, *prev_cows))],
+                    &new_secret,
+                );
+                return SecretChangeResponse::Invalid(feedback);
             }
         }
-        mismatches
-    }
-}
 
-pub enum SecretChangeResponse {
-    Valid,
-    Invalid(String),
-}
-
-impl SecretChangeResponse {
-    pub fn message(&self) -> &str {
-        match self {
-            SecretChangeResponse::Valid => "Secret updated successfully.",
-            SecretChangeResponse::Invalid(msg) => &msg,
-        }
+        self.secret = new_secret;
+        SecretChangeResponse::Valid
     }
 }
 
@@ -74,28 +52,16 @@ pub fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
     (bulls, cows)
 }
 
-fn format_mismatch_feedback(
-    mismatches: Vec<(String, usize, usize, usize, usize)>,
-    new_secret: &str,
-) -> String {
-    let mut feedback = String::from("The new secret does not match the score for these guesses:\n");
-    for (guess, expected_bulls, expected_cows, actual_bulls, actual_cows) in mismatches {
-        feedback.push_str("Guess: ");
-        let mut guess_display = String::new();
-        for (s_char, g_char) in new_secret.chars().zip(guess.chars()) {
-            if s_char == g_char {
-                guess_display.push_str(&g_char.to_string().green().to_string());
-            } else if new_secret.contains(g_char) {
-                guess_display.push_str(&g_char.to_string().yellow().to_string());
-            } else {
-                guess_display.push(g_char);
-            }
+pub enum SecretChangeResponse {
+    Valid,
+    Invalid(String),
+}
+
+impl SecretChangeResponse {
+    pub fn message(&self) -> &str {
+        match self {
+            SecretChangeResponse::Valid => "Secret updated successfully.",
+            SecretChangeResponse::Invalid(msg) => msg,
         }
-        feedback.push_str(&guess_display);
-        feedback.push_str(&format!(
-            ", Expected {} bulls and {} cows, Found {} bulls and {} cows\n",
-            expected_bulls, expected_cows, actual_bulls, actual_cows
-        ));
     }
-    feedback
 }
