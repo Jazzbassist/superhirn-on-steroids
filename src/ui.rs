@@ -91,3 +91,29 @@ pub fn read_new_secret(player: &Player) -> String {
     io::stdin().read_line(&mut new_secret).expect("Failed to read new secret");
     new_secret.trim().to_string()
 }
+
+
+// ui.rs
+
+// Existing code...
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_format_guess_for_display_no_color() {
+        let secret = "1234";
+        let guess = "1243";
+        let result = format_guess_for_display(guess, secret, false);
+        assert_eq!(result, "1243");
+    }
+
+    #[test]
+    fn test_format_guess_for_display_with_color() {
+        let secret = "1234";
+        let guess = "1243";
+        let result = format_guess_for_display(guess, secret, true);
+        assert_eq!(result, "\u{1b}[32m1\u{1b}[0m\u{1b}[32m2\u{1b}[0m\u{1b}[33m4\u{1b}[0m\u{1b}[33m3\u{1b}[0m");
+    }
+}

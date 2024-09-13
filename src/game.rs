@@ -58,6 +58,7 @@ pub fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
     (bulls, cows)
 }
 
+#[derive(PartialEq, Debug)]
 pub enum SecretChangeResponse {
     Valid,
     Invalid(String),
@@ -69,5 +70,55 @@ impl SecretChangeResponse {
             SecretChangeResponse::Valid => "Secret updated successfully.",
             SecretChangeResponse::Invalid(msg) => msg,
         }
+    }
+}
+
+// game.rs
+
+// Existing code...
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_score_guess_correct() {
+        assert_eq!(score_guess("1234", "1234"), (4, 0));
+    }
+
+    #[test]
+    fn test_score_guess_with_cows() {
+        assert_eq!(score_guess("1234", "1243"), (2, 2));
+    }
+
+    #[test]
+    fn test_update_secret_valid() {
+        let mut game = Game::new("1234".to_string());
+        let response = game.update_secret("4321".to_string());
+        assert_eq!(response, SecretChangeResponse::Valid);
+        assert_eq!(game.secret, "4321".to_string());
+    }
+
+    #[test]
+    fn test_update_secret_invalid_length() {
+        let mut game = Game::new("1234".to_string());
+        let response = game.update_secret("123".to_string());
+        assert_eq!(response, SecretChangeResponse::Invalid("New secret length mismatch.".to_string()));
+    }
+
+    #[test]
+    fn test_update_secret_invalid_digits() {
+        let mut game = Game::new("1234".to_string());
+        let response = game.update_secret("123a".to_string());
+        assert_eq!(response, SecretChangeResponse::Invalid("New secret must be composed of digits only.".to_string()));
+    }
+
+    #[test]
+    fn test_update_secret_invalid_mismatch() {
+        let mut game = Game::new("1234".to_string());
+        game.add_guess("5678".to_string(), (0, 0));
+        let response = game.update_secret("5678".to_string());
+        let expected = format_mismatch_feedback(&vec![("5678".to_string(), (0, 0))], "5678");
+        assert_eq!(response, SecretChangeResponse::Invalid(expected));
     }
 }
