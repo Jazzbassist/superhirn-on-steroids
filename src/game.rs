@@ -1,10 +1,10 @@
 // game.rs
-use colored::Colorize; // Import the Colorize trait
+use colored::Colorize;
 
 pub struct Game<T: InputSource> {
     pub secret: String,
     pub previous_guesses: Vec<(String, (usize, usize))>,
-    input_source: T,
+    pub input_source: T, // Make this field public
 }
 
 impl<T: InputSource> Game<T> {
