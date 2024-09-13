@@ -20,7 +20,7 @@ fn main() {
     io::stdin().read_line(&mut secret).expect("Failed to read secret");
 
     // Trim any extra whitespace or newline from the input
-    let secret = secret.trim().to_string();
+    let mut secret = secret.trim().to_string();
 
     // Ensure the secret is composed only of digits
     if !secret.chars().all(|c| c.is_digit(10)) {
@@ -31,61 +31,94 @@ fn main() {
     // Vector to store previous guesses and their scores
     let mut previous_guesses: Vec<(String, (usize, usize))> = Vec::new();
 
-    // Main game loop with Player 2 guessing
     loop {
+        // Main game loop with Player 2 guessing
         println!("Player 2, enter your guess ({} digits):", secret.len());
 
-        // Read Player 2's guess
         let mut guess = String::new();
         io::stdin().read_line(&mut guess).expect("Failed to read input");
 
-        // Trim the guess input
         let guess = guess.trim().to_string();
 
-        // Ensure the guess has the same length as the secret
         if guess.len() != secret.len() {
             println!("Your guess must be {} digits long!", secret.len());
-            continue;  // If invalid, prompt again
+            continue;
         }
 
-        // Score the guess
         let (bulls, cows) = score_guess(&secret, &guess);
-
-        // Display result (only bulls and cows count for now)
         println!("Bulls: {}, Cows: {}", bulls, cows);
-
-        // Store the guess and its score in the history
         previous_guesses.push((guess.clone(), (bulls, cows)));
 
-        // Display previous guesses without any color
+        // Display previous guesses
         println!("\nPrevious guesses:");
         for (g, (b, c)) in &previous_guesses {
             println!("Guess: {}, Bulls: {}, Cows: {}", g, b, c);
         }
 
-        // Check if the guess is correct (all bulls)
         if bulls == secret.len() {
             println!("Congratulations! You've guessed the secret.");
             break;
         }
+
+        // Allow Player 1 to change the secret
+        println!("Would you like to change the secret? (yes/no):");
+        let mut response = String::new();
+        io::stdin().read_line(&mut response).expect("Failed to read input");
+        let response = response.trim().to_lowercase();
+
+        if response == "yes" {
+            loop {
+                println!("Enter the new secret code (digits only):");
+                let mut new_secret = String::new();
+                io::stdin().read_line(&mut new_secret).expect("Failed to read new secret");
+
+                let new_secret = new_secret.trim().to_string();
+
+                if new_secret.len() != secret.len() {
+                    println!("The new secret must be the same length as the original secret.");
+                    continue;
+                }
+
+                if !new_secret.chars().all(|c| c.is_digit(10)) {
+                    println!("The new secret must be composed of digits only!");
+                    continue;
+                }
+
+                // Validate the new secret against previous guesses
+                let mut valid = true;
+                for (prev_guess, (prev_bulls, prev_cows)) in &previous_guesses {
+                    let (new_bulls, new_cows) = score_guess(&new_secret, prev_guess);
+                    if new_bulls != *prev_bulls || new_cows != *prev_cows {
+                        println!("New secret does not match the score for guess: {}", prev_guess);
+                        valid = false;
+                        break;
+                    }
+                }
+
+                if valid {
+                    // Update the secret
+                    secret = new_secret;
+                    break;
+                } else {
+                    println!("The new secret was invalid. Please try again.");
+                }
+            }
+        }
     }
 
-    // After the game is won, display detailed feedback for all previous guesses
+    // Display final feedback
     println!("\nFinal Feedback:");
     for (guess, _) in &previous_guesses {
         print!("Guess: ");
         for (s_char, g_char) in secret.chars().zip(guess.chars()) {
             if s_char == g_char {
-                // Bulls: correct digit and correct position (green)
                 print!("{}", g_char.to_string().green());
             } else if secret.contains(g_char) {
-                // Cows: correct digit, wrong position (yellow)
                 print!("{}", g_char.to_string().yellow());
             } else {
-                // Incorrect digit: leave uncolored
                 print!("{}", g_char);
             }
         }
-        println!();  // Newline after each guess feedback
+        println!();
     }
 }
