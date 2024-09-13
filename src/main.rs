@@ -76,6 +76,12 @@ fn main() {
         // Store the guess and its score in the history
         previous_guesses.push((guess.clone(), (bulls, cows)));
 
+        // Display previous guesses without any color
+        println!("\nPrevious guesses:");
+        for (g, (b, c)) in &previous_guesses {
+            println!("Guess: {}, Bulls: {}, Cows: {}", g, b, c);
+        }
+
         // Check if the guess is correct (all bulls)
         if bulls == secret.len() {
             println!("Congratulations! You've guessed the secret.");
