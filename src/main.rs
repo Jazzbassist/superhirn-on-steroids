@@ -41,7 +41,7 @@ impl Game {
             SecretChangeResponse::Valid
         } else {
             print_mismatch_feedback(mismatches, &new_secret);
-            SecretChangeResponse::Invalid("New secret does not match the score for previous guesses.")
+            SecretChangeResponse::Invalid("The new secret does not match the score for previous guesses.")
         }
     }
 }
@@ -90,7 +90,7 @@ fn print_mismatch_feedback(
     mismatches: Vec<(String, usize, usize, usize, usize)>,
     new_secret: &str,
 ) {
-    println!("New secret does not match the score for these guesses:");
+    println!("The new secret does not match the score for these guesses:");
     for (guess, expected_bulls, expected_cows, actual_bulls, actual_cows) in mismatches {
         print!("Guess: ");
         print_feedback(&guess, new_secret);
@@ -143,16 +143,6 @@ fn read_new_secret(game: &mut Game) {
     }
 }
 
-// Function to ask if the player wants to change the secret
-fn ask_to_change_secret() -> String {
-    println!("Would you like to change the secret? (yes/no):");
-    let mut response = String::new();
-    io::stdin()
-        .read_line(&mut response)
-        .expect("Failed to read input");
-    response.trim().to_lowercase()
-}
-
 // Main game loop function
 fn main_game_loop(game: &mut Game) {
     loop {
@@ -178,11 +168,8 @@ fn main_game_loop(game: &mut Game) {
             break;
         }
 
-        let response = ask_to_change_secret();
-
-        if response == "yes" {
-            read_new_secret(game);
-        }
+        // Read and apply new secret without asking for confirmation
+        read_new_secret(game);
     }
 }
 
