@@ -33,26 +33,34 @@ fn main() {
     // Secret and guess should have the same length
     let secret = "1234"; // You can hardcode it or randomly generate
 
-    println!("Enter your guess ({} digits):", secret.len());
+    loop {
+        println!("Enter your guess ({} digits):", secret.len());
 
-    // Read user input
-    let mut guess = String::new();
-    io::stdin()
-        .read_line(&mut guess)
-        .expect("Failed to read input");
+        // Read user input
+        let mut guess = String::new();
+        io::stdin()
+            .read_line(&mut guess)
+            .expect("Failed to read input");
 
-    // Trim the guess to remove any extra whitespace or newline
-    let guess = guess.trim();
+        // Trim the guess to remove any extra whitespace or newline
+        let guess = guess.trim();
 
-    // Ensure that the guess has the correct length
-    if guess.len() != secret.len() {
-        println!("Your guess must be {} digits long!", secret.len());
-        return;
+        // Ensure that the guess has the correct length
+        if guess.len() != secret.len() {
+            println!("Your guess must be {} digits long!", secret.len());
+            continue; // Ask for input again if the guess length is invalid
+        }
+
+        // Score the guess
+        let (bulls, cows) = score_guess(secret, guess);
+
+        // Print the result
+        println!("Bulls: {}, Cows: {}", bulls, cows);
+
+        // Break the loop if the guess matches the secret exactly
+        if bulls == secret.len() {
+            println!("Congratulations! You've guessed the secret.");
+            break;
+        }
     }
-
-    // Score the guess
-    let (bulls, cows) = score_guess(secret, guess);
-
-    // Print the result
-    println!("Bulls: {}, Cows: {}", bulls, cows);
 }
