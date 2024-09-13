@@ -118,7 +118,8 @@ mod tests {
         let mut game = Game::new("1234".to_string());
         game.add_guess("5678".to_string(), (0, 0));
         let response = game.update_secret("5678".to_string());
-        let expected = format_mismatch_feedback(&vec![("5678".to_string(), (0, 0))], "5678");
+        let expected = "New secret does not match the score for these guesses:\nGuess: \u{1b}[32m5\u{1b}[0m\u{1b}[32m6\u{1b}[0m\u{1b}[32m7\u{1b}[0m\u{1b}[32m8\u{1b}[0m, Expected 0 bulls and 0 cows\n".to_string();
+        //let expected = format_mismatch_feedback(&vec![("5678".to_string(), (0, 0))], "5678");
         assert_eq!(response, SecretChangeResponse::Invalid(expected));
     }
 }
