@@ -11,6 +11,7 @@ pub trait Code {
     fn new () -> Self;
     fn compare (&self, guessed: &Self) -> Box<dyn Feedback>;
     fn display(&self);
+    fn size(&self) -> usize;
 }
 
 #[derive (Debug, PartialEq, Eq)]
@@ -71,6 +72,10 @@ impl Code for BasicCode {
 
         Box::new(BasicFeedback::new(correct_positions, correct_colours))
     }
+
+    fn size(&self) -> usize {
+        MAX_LENGTH
+    }
 }
 
 #[cfg(test)]
@@ -124,8 +129,8 @@ mod tests {
 
         let mut code2 = BasicCode::new();
         code2.set_pin(0, PinColour::Black); //right
-        code2.set_pin(1, PinColour::Blue);  //false
-        code2.set_pin(2, PinColour::Empty); //right_color
+        code2.set_pin(1, PinColour::Blue);  //right_colour
+        code2.set_pin(2, PinColour::Empty); //false
         code2.set_pin(4, PinColour::Empty); //right
         code2.set_pin(3, PinColour::Empty); //right
 
