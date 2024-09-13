@@ -1,5 +1,5 @@
 // game.rs
-use std::fmt;
+use colored::Colorize; // Import the Colorize trait
 
 pub struct Game {
     pub secret: String,
@@ -64,7 +64,7 @@ impl SecretChangeResponse {
     }
 }
 
-fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
+pub fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
     let bulls = secret
         .chars()
         .zip(guess.chars())
