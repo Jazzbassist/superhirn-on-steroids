@@ -1,20 +1,14 @@
 // main.rs
 mod game;
 mod display;
+mod input;
 
 use game::*;
 use display::*;
-use std::io;
+use input::*;
 
 fn main() {
-    println!("Player 1, enter the secret code (digits only):");
-
-    let mut secret = String::new();
-    io::stdin()
-        .read_line(&mut secret)
-        .expect("Failed to read secret");
-
-    let secret = secret.trim().to_string();
+    let secret = read_secret("Player 1");
 
     if !secret.chars().all(|c| c.is_digit(10)) {
         println!("The secret must be composed of digits only!");
@@ -28,7 +22,7 @@ fn main() {
 
 fn main_game_loop(game: &mut Game) {
     loop {
-        let guess = match read_guess(game.secret.len()) {
+        let guess = match read_guess("Player 2", game.secret.len()) {
             Some(value) => value,
             None => continue,
         };
@@ -44,34 +38,7 @@ fn main_game_loop(game: &mut Game) {
             break;
         }
 
-        read_new_secret(game);
-    }
-}
-
-fn read_guess(secret_len: usize) -> Option<String> {
-    println!("Player 2, enter your guess ({} digits):", secret_len);
-    let mut guess = String::new();
-    io::stdin()
-        .read_line(&mut guess)
-        .expect("Failed to read input");
-    let guess = guess.trim().to_string();
-    if guess.len() != secret_len {
-        println!("Your guess must be {} digits long!", secret_len);
-        None
-    } else {
-        Some(guess)
-    }
-}
-
-fn read_new_secret(game: &mut Game) {
-    loop {
-        println!("Enter the new secret code (digits only):");
-        let mut new_secret = String::new();
-        io::stdin()
-            .read_line(&mut new_secret)
-            .expect("Failed to read new secret");
-
-        let new_secret = new_secret.trim().to_string();
+        let new_secret = read_new_secret("Player 1");
 
         match game.update_secret(new_secret.clone()) {
             SecretChangeResponse::Valid => {
