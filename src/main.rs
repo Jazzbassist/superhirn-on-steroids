@@ -25,18 +25,18 @@ fn main() {
 
     main_game_loop(&mut secret, &mut previous_guesses);
 
-    final_feedback(previous_guesses, secret);
+    final_feedback(&previous_guesses, &secret);
 }
 
 fn main_game_loop(secret: &mut String, previous_guesses: &mut Vec<(String, (usize, usize))>) {
     loop {
         // Main game loop with Player 2 guessing
-        let guess = match read_guess(&*secret) {
+        let guess = match read_guess(&secret) {
             Some(value) => value,
             None => continue,
         };
 
-        let (bulls, cows) = score_guess(&*secret, &guess);
+        let (bulls, cows) = score_guess(&secret, &guess);
         println!("Bulls: {}, Cows: {}", bulls, cows);
         previous_guesses.push((guess.clone(), (bulls, cows)));
 
@@ -54,12 +54,12 @@ fn main_game_loop(secret: &mut String, previous_guesses: &mut Vec<(String, (usiz
         let response = ask_to_change_secret();
 
         if response == "yes" {
-            read_new_secret(secret, &*previous_guesses);
+            read_new_secret(secret, &previous_guesses);
         }
     }
 }
 
-fn read_guess(secret: &String) -> Option<String> {
+fn read_guess(secret: &str) -> Option<String> {
     println!("Player 2, enter your guess ({} digits):", secret.len());
     let mut guess = String::new();
     io::stdin()
@@ -93,7 +93,7 @@ fn read_new_secret(secret: &mut String, previous_guesses: &Vec<(String, (usize, 
             continue;
         }
 
-        // Validate the new secret against previous guesses
+        // Validate the new secret against previous guesses and provide feedback
         let mut valid = true;
         for (prev_guess, (prev_bulls, prev_cows)) in previous_guesses {
             let (new_bulls, new_cows) = score_guess(&new_secret, prev_guess);
@@ -112,7 +112,8 @@ fn read_new_secret(secret: &mut String, previous_guesses: &Vec<(String, (usize, 
             *secret = new_secret;
             break;
         } else {
-            println!("The new secret was invalid. Please try again.");
+            println!("The new secret was invalid. Here is the detailed feedback:");
+            final_feedback(previous_guesses, &new_secret);
         }
     }
 }
@@ -128,10 +129,10 @@ fn ask_to_change_secret() -> String {
     response
 }
 
-fn final_feedback(previous_guesses: Vec<(String, (usize, usize))>, secret: String) {
+fn final_feedback(previous_guesses: &Vec<(String, (usize, usize))>, secret: &str) {
     // Display final feedback
-    println!("\nFinal Feedback:");
-    for (guess, _) in &previous_guesses {
+    println!("\nDetailed Feedback:");
+    for (guess, _) in previous_guesses {
         print!("Guess: ");
         for (s_char, g_char) in secret.chars().zip(guess.chars()) {
             if s_char == g_char {
