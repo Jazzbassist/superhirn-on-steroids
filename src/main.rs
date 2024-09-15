@@ -20,7 +20,6 @@ fn main() {
 
 fn main_game_loop(game: &mut Game) {
     loop {
-        // Show guesses without color during the game
         display_previous_guesses(&Player::Player2, &game.previous_guesses, &game.secret, false);
         
         let guess = match read_guess(&Player::Player2, game.secret.len()) {
@@ -28,17 +27,17 @@ fn main_game_loop(game: &mut Game) {
             None => continue,
         };
 
-        let (bulls, cows) = score_guess(&game.secret, &guess);
-        display_message(&Player::Player2, &format!("Bulls: {}, Cows: {}", bulls, cows));
-        game.add_guess(guess.clone(), (bulls, cows));
+        // Use the process_guess method to get a Score
+        let score = game.process_guess(guess.clone());
 
-        if bulls == game.secret.len() {
+        display_message(&Player::Player2, &score.display());
+
+        if score.bulls == game.secret.len() {
             display_message(&Player::Player2, "Congratulations! You've guessed the secret.");
             display_previous_guesses(&Player::Player2, &game.previous_guesses, &game.secret, true);
             break;
         }
 
-        // Show guesses with color after secret is updated
         display_previous_guesses(&Player::Player1, &game.previous_guesses, &game.secret, true);
 
         'fetch_new_secret: loop {
@@ -51,9 +50,10 @@ fn main_game_loop(game: &mut Game) {
                 }
                 SecretChangeResponse::Invalid(msg) => {
                     display_message(&Player::Player1, &msg);
-                    continue 'fetch_new_secret; // Allow Player 1 to try again
+                    continue 'fetch_new_secret;
                 }
             }
         }
     }
 }
+

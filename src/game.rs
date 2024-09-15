@@ -3,7 +3,24 @@ use crate::ui::format_mismatch_feedback;
 
 pub struct Game {
     pub secret: String,
-    pub previous_guesses: Vec<(String, (usize, usize))>,
+    pub previous_guesses: Vec<(String, Score)>, // Use Score instead of tuple
+}
+
+
+#[derive(PartialEq, Clone, Debug)]
+pub struct Score {
+    pub bulls: usize,
+    pub cows: usize,
+}
+
+impl Score {
+    pub fn new(bulls: usize, cows: usize) -> Self {
+        Score { bulls, cows }
+    }
+
+    pub fn display(&self) -> String {
+        format!("Bulls: {}, Cows: {}", self.bulls, self.cows)
+    }
 }
 
 impl Game {
@@ -14,8 +31,15 @@ impl Game {
         }
     }
 
-    pub fn add_guess(&mut self, guess: String, score: (usize, usize)) {
-        self.previous_guesses.push((guess, score));
+    pub fn add_guess(&mut self, guess: String, score: Score) {
+        self.previous_guesses
+            .push((guess, score));
+    }
+
+    pub fn process_guess(&mut self, guess: String) -> Score {
+        let score = score_guess(&self.secret, &guess);
+        self.add_guess(guess.clone(), score.clone()); // Store guess and score
+        score
     }
 
     pub fn update_secret(&mut self, new_secret: String) -> SecretChangeResponse {
@@ -24,15 +48,19 @@ impl Game {
         }
 
         if !new_secret.chars().all(|c| c.is_digit(10)) {
-            return SecretChangeResponse::Invalid("New secret must be composed of digits only.".to_string());
+            return SecretChangeResponse::Invalid(
+                "New secret must be composed of digits only.".to_string(),
+            );
         }
 
         // Validate new secret against previous guesses
-        let mismatches: Vec<(String, (usize, usize))> = self.previous_guesses.iter()
-            .filter_map(|(prev_guess, (prev_bulls, prev_cows))| {
-                let (new_bulls, new_cows) = score_guess(&new_secret, prev_guess);
-                if new_bulls != *prev_bulls || new_cows != *prev_cows {
-                    Some((prev_guess.clone(), (*prev_bulls, *prev_cows)))
+        let mismatches: Vec<(String, Score)> = self
+            .previous_guesses
+            .iter()
+            .filter_map(|(prev_guess, prev_score)| {
+                let new_score = score_guess(&new_secret, prev_guess);
+                if new_score.bulls != prev_score.bulls || new_score.cows != prev_score.cows {
+                    Some((prev_guess.clone(), Score::new(prev_score.bulls, prev_score.cows)))
                 } else {
                     None
                 }
@@ -48,14 +76,16 @@ impl Game {
     }
 }
 
-pub fn score_guess(secret: &str, guess: &str) -> (usize, usize) {
+pub fn score_guess(secret: &str, guess: &str) -> Score {
     let bulls = secret
         .chars()
         .zip(guess.chars())
         .filter(|(s, g)| s == g)
         .count();
+
     let cows = guess.chars().filter(|g| secret.contains(*g)).count() - bulls;
-    (bulls, cows)
+
+    Score::new(bulls, cows)
 }
 
 #[derive(PartialEq, Debug)]
@@ -83,12 +113,12 @@ mod tests {
 
     #[test]
     fn test_score_guess_correct() {
-        assert_eq!(score_guess("1234", "1234"), (4, 0));
+        assert_eq!(score_guess("1234", "1234"), Score::new(4, 0));
     }
 
     #[test]
     fn test_score_guess_with_cows() {
-        assert_eq!(score_guess("1234", "1243"), (2, 2));
+        assert_eq!(score_guess("1234", "1243"), Score::new(2, 2));
     }
 
     #[test]
@@ -103,20 +133,28 @@ mod tests {
     fn test_update_secret_invalid_length() {
         let mut game = Game::new("1234".to_string());
         let response = game.update_secret("123".to_string());
-        assert_eq!(response, SecretChangeResponse::Invalid("New secret length mismatch.".to_string()));
+        assert_eq!(
+            response,
+            SecretChangeResponse::Invalid("New secret length mismatch.".to_string())
+        );
     }
 
     #[test]
     fn test_update_secret_invalid_digits() {
         let mut game = Game::new("1234".to_string());
         let response = game.update_secret("123a".to_string());
-        assert_eq!(response, SecretChangeResponse::Invalid("New secret must be composed of digits only.".to_string()));
+        assert_eq!(
+            response,
+            SecretChangeResponse::Invalid(
+                "New secret must be composed of digits only.".to_string()
+            )
+        );
     }
 
     #[test]
     fn test_update_secret_invalid_mismatch() {
         let mut game = Game::new("1234".to_string());
-        game.add_guess("5678".to_string(), (0, 0));
+        game.add_guess("5678".to_string(), Score::new(0, 0));
         let response = game.update_secret("5678".to_string());
         let expected = "New secret does not match the score for these guesses:\nGuess: \u{1b}[32m5\u{1b}[0m\u{1b}[32m6\u{1b}[0m\u{1b}[32m7\u{1b}[0m\u{1b}[32m8\u{1b}[0m, Expected 0 bulls and 0 cows\n".to_string();
         //let expected = format_mismatch_feedback(&vec![("5678".to_string(), (0, 0))], "5678");

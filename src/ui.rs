@@ -1,6 +1,7 @@
 // ui.rs
 use colored::Colorize;
 use std::io;
+use crate::game::*;
 
 pub enum Player {
     Player1,
@@ -41,29 +42,37 @@ pub fn format_guess_for_display(guess: &str, secret: &str, colorify: bool) -> St
     }
 }
 
-pub fn format_mismatch_feedback(mismatches: &[(String, (usize, usize))], secret: &str) -> String {
+pub fn format_mismatch_feedback(mismatches: &[(String, Score)], secret: &str) -> String {
     let mut feedback = "New secret does not match the score for these guesses:\n".to_string();
-    for (guess, (expected_bulls, expected_cows)) in mismatches {
+    for (guess, score) in mismatches {
         let formatted_guess = format_guess_for_display(guess, secret, true);
         feedback.push_str(&format!(
             "Guess: {}, Expected {} bulls and {} cows\n",
-            formatted_guess, expected_bulls, expected_cows
+            formatted_guess, score.bulls, score.cows
         ));
     }
     feedback
 }
 
+
 pub fn display_message(player: &Player, message: &str) {
     println!("{}: {}", player.colored_name(), message);
 }
 
-pub fn display_previous_guesses(player: &Player, previous_guesses: &[(String, (usize, usize))], secret: &str, colorify: bool) {
+pub fn display_previous_guesses(player: &Player, previous_guesses: &[(String, Score)], secret: &str, colorify: bool) {
     println!("\n{}: Previous guesses:", player.colored_name());
-    for (guess, (bulls, cows)) in previous_guesses {
+    for (guess, score) in previous_guesses {
         let guess_display = format_guess_for_display(guess, secret, colorify);
-        println!("{}: Guess: {}, Bulls: {}, Cows: {}", player.colored_name(), guess_display, bulls, cows);
+        println!(
+            "{}: Guess: {}, Bulls: {}, Cows: {}",
+            player.colored_name(),
+            guess_display,
+            score.bulls,
+            score.cows
+        );
     }
 }
+
 
 pub fn read_secret(player: &Player) -> String {
     println!("{}: Enter the secret code (digits only):", player.colored_name());
