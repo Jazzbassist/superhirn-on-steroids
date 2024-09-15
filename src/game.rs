@@ -1,10 +1,6 @@
 // game.rs
 use crate::ui::format_mismatch_feedback;
 
-pub struct Game {
-    pub secret: String,
-    pub previous_guesses: Vec<(String, Score)>, // Use Score instead of tuple
-}
 
 
 #[derive(PartialEq, Clone, Debug)]
@@ -22,6 +18,10 @@ impl Score {
         format!("Bulls: {}, Cows: {}", self.bulls, self.cows)
     }
 }
+pub struct Game {
+    secret: String,
+    previous_guesses: Vec<(String, Score)>, // Use Score instead of tuple
+}
 
 impl Game {
     pub fn new(secret: String) -> Self {
@@ -31,18 +31,34 @@ impl Game {
         }
     }
 
-    pub fn add_guess(&mut self, guess: String, score: Score) {
+    pub fn get_previous_guesses(&self) -> &[(String, Score)] {
+        &self.previous_guesses
+    }
+
+    pub fn get_secret(&self) -> &String {
+        &self.secret
+    }
+
+    pub fn get_secret_len(&self) -> usize {
+        self.secret.len()
+    }
+
+    fn add_guess(&mut self, guess: String, score: Score) {
         self.previous_guesses
             .push((guess, score));
     }
 
-    pub fn process_guess(&mut self, guess: String) -> Score {
+    pub fn handle_guess(&mut self, guess: String) -> Result<Score, &'static str> {
+        if guess.len() != self.secret.len() {
+            return Err("Invalid guess length.");
+        }
+
         let score = score_guess(&self.secret, &guess);
-        self.add_guess(guess.clone(), score.clone()); // Store guess and score
-        score
+        self.add_guess(guess.clone(), score.clone());
+        Ok(score)
     }
 
-    pub fn update_secret(&mut self, new_secret: String) -> SecretChangeResponse {
+    fn update_secret_internal(&mut self, new_secret: String) -> SecretChangeResponse {
         if new_secret.len() != self.secret.len() {
             return SecretChangeResponse::Invalid("New secret length mismatch.".to_string());
         }
@@ -73,6 +89,11 @@ impl Game {
         } else {
             SecretChangeResponse::Invalid(format_mismatch_feedback(&mismatches, &new_secret))
         }
+    }
+
+    pub fn change_secret(&mut self, new_secret: String) -> SecretChangeResponse {
+        // This can be exposed to the UI or main loop
+        self.update_secret_internal(new_secret)
     }
 }
 
@@ -124,7 +145,7 @@ mod tests {
     #[test]
     fn test_update_secret_valid() {
         let mut game = Game::new("1234".to_string());
-        let response = game.update_secret("4321".to_string());
+        let response = game.change_secret("4321".to_string());
         assert_eq!(response, SecretChangeResponse::Valid);
         assert_eq!(game.secret, "4321".to_string());
     }
@@ -132,7 +153,7 @@ mod tests {
     #[test]
     fn test_update_secret_invalid_length() {
         let mut game = Game::new("1234".to_string());
-        let response = game.update_secret("123".to_string());
+        let response = game.change_secret("123".to_string());
         assert_eq!(
             response,
             SecretChangeResponse::Invalid("New secret length mismatch.".to_string())
@@ -142,7 +163,7 @@ mod tests {
     #[test]
     fn test_update_secret_invalid_digits() {
         let mut game = Game::new("1234".to_string());
-        let response = game.update_secret("123a".to_string());
+        let response = game.change_secret("123a".to_string());
         assert_eq!(
             response,
             SecretChangeResponse::Invalid(
@@ -155,7 +176,7 @@ mod tests {
     fn test_update_secret_invalid_mismatch() {
         let mut game = Game::new("1234".to_string());
         game.add_guess("5678".to_string(), Score::new(0, 0));
-        let response = game.update_secret("5678".to_string());
+        let response = game.change_secret("5678".to_string());
         let expected = "New secret does not match the score for these guesses:\nGuess: \u{1b}[32m5\u{1b}[0m\u{1b}[32m6\u{1b}[0m\u{1b}[32m7\u{1b}[0m\u{1b}[32m8\u{1b}[0m, Expected 0 bulls and 0 cows\n".to_string();
         //let expected = format_mismatch_feedback(&vec![("5678".to_string(), (0, 0))], "5678");
         assert_eq!(response, SecretChangeResponse::Invalid(expected));

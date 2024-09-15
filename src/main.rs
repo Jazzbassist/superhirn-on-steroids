@@ -19,31 +19,31 @@ fn main() {
 }
 
 fn main_game_loop(game: &mut Game) {
-    loop {
-        display_previous_guesses(&Player::Player2, &game.previous_guesses, &game.secret, false);
-        
-        let guess = match read_guess(&Player::Player2, game.secret.len()) {
+    loop {display_previous_guesses(&Player::Player2, game.get_previous_guesses(), &game.get_secret(), false);
+
+        let guess = match read_guess(&Player::Player2, game.get_secret_len()) {
             Some(value) => value,
             None => continue,
         };
 
-        // Use the process_guess method to get a Score
-        let score = game.process_guess(guess.clone());
-
-        display_message(&Player::Player2, &score.display());
-
-        if score.bulls == game.secret.len() {
-            display_message(&Player::Player2, "Congratulations! You've guessed the secret.");
-            display_previous_guesses(&Player::Player2, &game.previous_guesses, &game.secret, true);
-            break;
+        match game.handle_guess(guess.clone()) {
+            Ok(score) => {
+                display_message(&Player::Player2, &score.display());
+                if score.bulls == game.get_secret_len() {
+                    display_message(&Player::Player2, "Congratulations! You've guessed the secret.");
+                    display_previous_guesses(&Player::Player2, game.get_previous_guesses(), &game.get_secret(), true);
+                    break;
+                }
+            },
+            Err(msg) => display_message(&Player::Player2, msg),
         }
 
-        display_previous_guesses(&Player::Player1, &game.previous_guesses, &game.secret, true);
-
+        display_previous_guesses(&Player::Player1, game.get_previous_guesses(), &game.get_secret(), true);
+        // Handle secret change...
         'fetch_new_secret: loop {
             let new_secret = read_new_secret(&Player::Player1);
-
-            match game.update_secret(new_secret.clone()) {
+        
+            match game.change_secret(new_secret.clone()) {
                 SecretChangeResponse::Valid => {
                     display_message(&Player::Player1, SecretChangeResponse::Valid.message());
                     break 'fetch_new_secret;
