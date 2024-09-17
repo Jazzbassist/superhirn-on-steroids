@@ -1,8 +1,6 @@
 // game.rs
 use crate::ui::format_mismatch_feedback;
 
-
-
 #[derive(PartialEq, Clone, Debug)]
 pub struct Score {
     pub bulls: usize,
@@ -44,8 +42,7 @@ impl Game {
     }
 
     fn add_guess(&mut self, guess: String, score: Score) {
-        self.previous_guesses
-            .push((guess, score));
+        self.previous_guesses.push((guess, score));
     }
 
     pub fn handle_guess(&mut self, guess: String) -> Result<Score, &'static str> {
@@ -117,11 +114,13 @@ pub enum SecretChangeResponse {
 }
 
 impl SecretChangeResponse {
-    pub fn message(&self) -> String{
+    pub fn message(&self) -> String {
         match self {
             SecretChangeResponse::Valid => "Secret updated successfully.".to_string(),
             SecretChangeResponse::Invalid(msg) => msg.to_string(),
-            SecretChangeResponse::Impossible(mismatches, secret) => format_mismatch_feedback(mismatches, secret),
+            SecretChangeResponse::Impossible(mismatches, secret) => {
+                format_mismatch_feedback(mismatches, secret)
+            }
         }
     }
 
@@ -186,7 +185,10 @@ mod tests {
         let mut game = Game::new("1234".to_string());
         game.add_guess("5678".to_string(), Score::new(0, 0));
         let response = game.change_secret("1278".to_string());
-        let expected = SecretChangeResponse::Impossible(vec!(("5678".to_string(), Score::new(0, 0))), "1234".to_string());
+        let expected = SecretChangeResponse::Impossible(
+            vec![("5678".to_string(), Score::new(0, 0))],
+            "1234".to_string(),
+        );
         //let expected = format_mismatch_feedback(&vec![("5678".to_string(), (0, 0))], "5678");
         assert_eq!(response, expected);
     }
