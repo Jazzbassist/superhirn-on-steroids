@@ -19,22 +19,6 @@ impl GameLoop {
         }
     }
 
-    pub fn output_state(&mut self) {
-        match self.player {
-            Player::Keeper => display_previous_guesses(
-                &self.player,
-                self.game.get_previous_guesses(),
-                self.game.get_secret(),
-                true,
-            ),
-            Player::Seeker => display_previous_guesses(
-                &self.player,
-                self.game.get_previous_guesses(),
-                self.game.get_secret(),
-                false,
-            ),
-        }
-    }
 
     pub fn take_input(&mut self, input: String) {
         match self.player {
@@ -44,8 +28,8 @@ impl GameLoop {
     }
 
     fn attempt_change_secret(&mut self, new_secret: String) {
-        let response = self.game.change_secret(new_secret);
-        if response.is_valid() {
+        let response = self.game.change_secret(&new_secret);
+        if response.is_ok() {
             self.player = Player::Seeker;
         }
     }
@@ -62,13 +46,9 @@ fn main() {
     old_game_loop()
 }
 
-fn main_game_loop_by_struct() {
-    let mut game_loop = GameLoop::new(read_input(&Player::Keeper));
-    game_loop.output_state();
-}
 
 pub fn old_game_loop() {
-    let secret = read_input(&Player::Keeper);
+    let secret = Player::Keeper.read_input();
 
     if !secret.chars().all(|c| c.is_digit(10)) {
         println!("The secret must be composed of digits only!");
@@ -82,53 +62,51 @@ pub fn old_game_loop() {
 
 fn main_game_loop(game: &mut Game) {
     loop {
-        display_previous_guesses(
-            &Player::Seeker,
-            game.get_previous_guesses(),
-            &game.get_secret(),
-            false,
-        );
+        let player = Player::Seeker;
+        player.display_guesses(game.get_previous_guesses());
 
-        let guess = read_input(&Player::Seeker);
+        let guess = player.read_input();
         match game.handle_guess(guess) {
             Ok(score) => {
-                display_message(&Player::Seeker, &score.display());
+                player.display_message(&score.display());
                 if score.bulls == game.get_secret_len() {
-                    display_message(
-                        &Player::Seeker,
+                    player.display_message(
                         "Congratulations! You've guessed the secret.",
                     );
-                    display_previous_guesses(
-                        &Player::Seeker,
+                    player.display_guesses_colorified(
                         game.get_previous_guesses(),
                         &game.get_secret(),
-                        true,
                     );
                     break;
                 }
             }
             Err(msg) => {
-                display_message(&Player::Seeker, msg);
+                player.display_message(msg);
                 continue;
             }
         }
 
-        display_previous_guesses(
-            &Player::Keeper,
+        let player = Player::Keeper;
+
+        player.display_guesses_colorified(
             game.get_previous_guesses(),
             &game.get_secret(),
-            true,
         );
         // Handle secret change...
         'fetch_new_secret: loop {
-            let new_secret = read_input(&Player::Keeper);
+            let new_secret = player.read_input();
 
-            let response = game.change_secret(new_secret.clone());
-            display_message(&Player::Keeper, &response.message());
-            if response.is_valid() {
-                break 'fetch_new_secret;
-            } else {
-                continue 'fetch_new_secret;
+            let result = game.change_secret(&new_secret);
+            match result {
+                Ok(()) => break 'fetch_new_secret,
+                Err(response) => {
+                    player.display_message(&response.message());
+                    match response {
+                        ErrResponse::GuessMismatch(guesses) => player.display_guesses_colorified(&guesses, &new_secret),
+                        _ => (),
+                    }
+                    continue 'fetch_new_secret;
+                }
             }
         }
     }

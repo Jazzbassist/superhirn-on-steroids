@@ -23,9 +23,37 @@ impl Player {
         }
         .to_string()
     }
+
+    pub fn display_message(&self, message: &str) {
+        println!("{}: {}", self.colored_name(), message);
+    }
+
+    pub fn read_input(&self) -> String {
+        self.display_message(
+            &match self {
+                Player::Keeper => "Enter the new secret code (digits only):",
+                Player::Seeker => "Enter your guess:",
+            },
+        );
+        let mut input = String::new();
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read new secret");
+        input.trim().to_string()
+    }
+
+    pub fn display_guesses(&self, guesses: &Vec<(String, Score)>) {
+        let formatted = [vec!("Previous Guesses:".to_string()), format_guesses(&guesses)].concat();
+        self.display_message(&formatted.join("\n\t"));
+    }
+
+    pub fn display_guesses_colorified(&self, guesses: &Vec<(String, Score)>, secret: &str) {
+        let colorified = colorify_guesses(guesses, secret);
+        self.display_guesses(&colorified);
+    }
 }
 
-pub fn format_guess_for_display(guess: &str, secret: &str) -> String {
+fn colorify_guess(guess: &str, secret: &str) -> String {
     let mut display = String::new();
     for (s_char, g_char) in secret.chars().zip(guess.chars()) {
         if s_char == g_char {
@@ -39,63 +67,19 @@ pub fn format_guess_for_display(guess: &str, secret: &str) -> String {
     display
 }
 
-pub fn format_mismatch_feedback(mismatches: &Vec<(String, Score)>, secret: &str) -> String {
-    let mut feedback = "New secret does not match the score for these guesses:\n".to_string();
-    for (guess, score) in mismatches {
-        let formatted_guess = format_guess_for_display(guess, secret);
-        feedback.push_str(&format!(
-            "Guess: {}, Expected {} bulls and {} cows\n",
-            formatted_guess, score.bulls, score.cows
-        ));
-    }
-    feedback
+fn colorify_guesses(guesses: &Vec<(String, Score)>, secret: &str) -> Vec<(String, Score)> {
+    guesses
+        .iter()
+        .map(|(guess, score)| (colorify_guess(guess, secret), score.clone()))
+        .collect()
 }
 
-pub fn display_message(player: &Player, message: &str) {
-    println!("{}: {}", player.colored_name(), message);
+fn format_guesses(guesses: &Vec<(String, Score)>) -> Vec<String> {
+    guesses
+        .iter()
+        .map(|(guess, score)| format!("{}, {}", guess, &score.display()))
+        .collect()
 }
-
-pub fn display_previous_guesses(
-    player: &Player,
-    previous_guesses: &[(String, Score)],
-    secret: &str,
-    colorify: bool,
-) {
-    display_message(player, "Previous guesses:");
-    for (guess, score) in previous_guesses {
-        let guess_display = if colorify {
-            format_guess_for_display(guess, secret)
-        } else {
-            guess.to_string()
-        };
-        display_message(
-            player,
-            &format!(
-                "Guess: {}, Bulls: {}, Cows: {}",
-                guess_display, score.bulls, score.cows
-            ),
-        );
-    }
-}
-
-pub fn read_input(player: &Player) -> String {
-    display_message(
-        player,
-        &match player {
-            Player::Keeper => "Enter the new secret code (digits only):",
-            Player::Seeker => "Enter your guess:",
-        },
-    );
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read new secret");
-    input.trim().to_string()
-}
-
-// ui.rs
-
-// Existing code...
 
 #[cfg(test)]
 mod tests {
@@ -104,7 +88,7 @@ mod tests {
     fn test_format_guess_for_display_with_color() {
         let secret = "1234";
         let guess = "1243";
-        let result = format_guess_for_display(guess, secret);
+        let result = colorify_guess(guess, secret);
         assert_eq!(
             result,
             "\u{1b}[32m1\u{1b}[0m\u{1b}[32m2\u{1b}[0m\u{1b}[33m4\u{1b}[0m\u{1b}[33m3\u{1b}[0m"
