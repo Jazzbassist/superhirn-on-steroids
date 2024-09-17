@@ -4,22 +4,22 @@ use std::io;
 use crate::game::*;
 
 pub enum Player {
-    Player1,
-    Player2,
+    Keeper,
+    Seeker,
 }
 
 impl Player {
     fn as_str(&self) -> &str {
         match self {
-            Player::Player1 => "Player 1",
-            Player::Player2 => "Player 2",
+            Player::Keeper => "Player 1",
+            Player::Seeker => "Player 2",
         }
     }
 
     fn colored_name(&self) -> String {
         match self {
-            Player::Player1 => self.as_str().green(),
-            Player::Player2 => self.as_str().red(),
+            Player::Keeper => self.as_str().green(),
+            Player::Seeker => self.as_str().red(),
         }.to_string()
     }
 }
