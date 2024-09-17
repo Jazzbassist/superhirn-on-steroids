@@ -73,14 +73,6 @@ pub fn display_previous_guesses(player: &Player, previous_guesses: &[(String, Sc
     }
 }
 
-
-pub fn read_secret(player: &Player) -> String {
-    println!("{}: Enter the secret code (digits only):", player.colored_name());
-    let mut secret = String::new();
-    io::stdin().read_line(&mut secret).expect("Failed to read secret");
-    secret.trim().to_string()
-}
-
 pub fn read_guess(player: &Player, length: usize) -> String {
     println!("{}: Enter your guess ({} digits):", player.colored_name(), length);
     let mut guess = String::new();

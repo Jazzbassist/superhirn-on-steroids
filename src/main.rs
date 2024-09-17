@@ -63,12 +63,12 @@ fn main() {
 }
 
 fn main_game_loop_by_struct() {
-    let mut game_loop = GameLoop::new(read_secret(&Player::Keeper));
+    let mut game_loop = GameLoop::new(read_new_secret(&Player::Keeper));
     game_loop.output_state();
 }
 
 pub fn old_game_loop() {
-    let secret = read_secret(&Player::Keeper);
+    let secret = read_new_secret(&Player::Keeper);
 
     if !secret.chars().all(|c| c.is_digit(10)) {
         println!("The secret must be composed of digits only!");
