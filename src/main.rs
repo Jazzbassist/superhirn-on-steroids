@@ -63,12 +63,12 @@ fn main() {
 }
 
 fn main_game_loop_by_struct() {
-    let mut game_loop = GameLoop::new(read_new_secret(&Player::Keeper));
+    let mut game_loop = GameLoop::new(read_input(&Player::Keeper));
     game_loop.output_state();
 }
 
 pub fn old_game_loop() {
-    let secret = read_new_secret(&Player::Keeper);
+    let secret = read_input(&Player::Keeper);
 
     if !secret.chars().all(|c| c.is_digit(10)) {
         println!("The secret must be composed of digits only!");
@@ -89,7 +89,7 @@ fn main_game_loop(game: &mut Game) {
             false,
         );
 
-        let guess = read_guess(&Player::Seeker, game.get_secret_len());
+        let guess = read_input(&Player::Seeker);
         match game.handle_guess(guess) {
             Ok(score) => {
                 display_message(&Player::Seeker, &score.display());
@@ -121,7 +121,7 @@ fn main_game_loop(game: &mut Game) {
         );
         // Handle secret change...
         'fetch_new_secret: loop {
-            let new_secret = read_new_secret(&Player::Keeper);
+            let new_secret = read_input(&Player::Keeper);
 
             let response = game.change_secret(new_secret.clone());
             display_message(&Player::Keeper, &response.message());

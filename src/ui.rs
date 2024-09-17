@@ -1,7 +1,7 @@
 // ui.rs
+use crate::game::*;
 use colored::Colorize;
 use std::io;
-use crate::game::*;
 
 pub enum Player {
     Keeper,
@@ -20,7 +20,8 @@ impl Player {
         match self {
             Player::Keeper => self.as_str().green(),
             Player::Seeker => self.as_str().red(),
-        }.to_string()
+        }
+        .to_string()
     }
 }
 
@@ -54,12 +55,16 @@ pub fn format_mismatch_feedback(mismatches: &Vec<(String, Score)>, secret: &str)
     feedback
 }
 
-
 pub fn display_message(player: &Player, message: &str) {
     println!("{}: {}", player.colored_name(), message);
 }
 
-pub fn display_previous_guesses(player: &Player, previous_guesses: &[(String, Score)], secret: &str, colorify: bool) {
+pub fn display_previous_guesses(
+    player: &Player,
+    previous_guesses: &[(String, Score)],
+    secret: &str,
+    colorify: bool,
+) {
     println!("\n{}: Previous guesses:", player.colored_name());
     for (guess, score) in previous_guesses {
         let guess_display = format_guess_for_display(guess, secret, colorify);
@@ -73,20 +78,20 @@ pub fn display_previous_guesses(player: &Player, previous_guesses: &[(String, Sc
     }
 }
 
-pub fn read_guess(player: &Player, length: usize) -> String {
-    println!("{}: Enter your guess ({} digits):", player.colored_name(), length);
-    let mut guess = String::new();
-    io::stdin().read_line(&mut guess).expect("Failed to read input");
-    guess.trim().to_string()
+pub fn read_input(player: &Player) -> String {
+    display_message(
+        player,
+        &match player {
+            Player::Keeper => "Enter the new secret code (digits only):",
+            Player::Seeker => "Enter your guess:",
+        },
+    );
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read new secret");
+    input.trim().to_string()
 }
-
-pub fn read_new_secret(player: &Player) -> String {
-    println!("{}: Enter the new secret code (digits only):", player.colored_name());
-    let mut new_secret = String::new();
-    io::stdin().read_line(&mut new_secret).expect("Failed to read new secret");
-    new_secret.trim().to_string()
-}
-
 
 // ui.rs
 
@@ -109,6 +114,9 @@ mod tests {
         let secret = "1234";
         let guess = "1243";
         let result = format_guess_for_display(guess, secret, true);
-        assert_eq!(result, "\u{1b}[32m1\u{1b}[0m\u{1b}[32m2\u{1b}[0m\u{1b}[33m4\u{1b}[0m\u{1b}[33m3\u{1b}[0m");
+        assert_eq!(
+            result,
+            "\u{1b}[32m1\u{1b}[0m\u{1b}[32m2\u{1b}[0m\u{1b}[33m4\u{1b}[0m\u{1b}[33m3\u{1b}[0m"
+        );
     }
 }
