@@ -44,13 +44,13 @@ impl Game {
         self.previous_guesses.push((guess, score));
     }
 
-    pub fn handle_guess(&mut self, guess: String) -> Result<Score, &'static str> {
+    pub fn handle_guess(&mut self, guess: &str) -> Result<Score, &'static str> {
         if guess.len() != self.secret.len() {
             return Err("Invalid guess length.");
         }
 
         let score = score_guess(&self.secret, &guess);
-        self.add_guess(guess.clone(), score.clone());
+        self.add_guess(guess.to_string(), score.clone());
         Ok(score)
     }
 
