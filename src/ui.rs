@@ -65,15 +65,15 @@ pub fn display_previous_guesses(
     secret: &str,
     colorify: bool,
 ) {
-    println!("\n{}: Previous guesses:", player.colored_name());
+    display_message(player, "Previous guesses:");
     for (guess, score) in previous_guesses {
         let guess_display = format_guess_for_display(guess, secret, colorify);
-        println!(
-            "{}: Guess: {}, Bulls: {}, Cows: {}",
-            player.colored_name(),
+        display_message(player,
+            &format!(
+            "Guess: {}, Bulls: {}, Cows: {}",
             guess_display,
             score.bulls,
-            score.cows
+            score.cows)
         );
     }
 }
