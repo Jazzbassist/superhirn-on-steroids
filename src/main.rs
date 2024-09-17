@@ -26,8 +26,16 @@ impl GameLoop {
             Player::Keeper => self.player = Player::Seeker,
             Player::Seeker => self.player = Player::Keeper
         }
+        self.print_state();
     }
 
+    pub fn prompt_input(&mut self) -> String {
+        self.player.read_input()
+    }
+
+    fn print_state(&self) {
+        self.player.display_guesses(self.game.get_previous_guesses());
+    }
 
     pub fn take_input(&mut self, input: &str) {
         match self.player {
@@ -74,7 +82,16 @@ impl GameLoop {
 }
 
 fn main() {
-    old_game_loop()
+    struct_game_loop()
+}
+
+fn struct_game_loop() {
+    let secret = Player::Keeper.read_input();
+    let mut gameloop = GameLoop::new(secret);
+    while !gameloop.is_over {
+        let input = &gameloop.prompt_input();
+        gameloop.take_input(&input);
+    }
 }
 
 
