@@ -11,8 +11,8 @@ pub enum Player {
 impl Player {
     fn as_str(&self) -> &str {
         match self {
-            Player::Keeper => "Player 1",
-            Player::Seeker => "Player 2",
+            Player::Keeper => "Keeper",
+            Player::Seeker => "Seeker",
         }
     }
 
