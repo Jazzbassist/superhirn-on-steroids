@@ -25,28 +25,24 @@ impl Player {
     }
 }
 
-pub fn format_guess_for_display(guess: &str, secret: &str, colorify: bool) -> String {
-    if colorify {
-        let mut display = String::new();
-        for (s_char, g_char) in secret.chars().zip(guess.chars()) {
-            if s_char == g_char {
-                display.push_str(&g_char.to_string().green().to_string());
-            } else if secret.contains(g_char) {
-                display.push_str(&g_char.to_string().yellow().to_string());
-            } else {
-                display.push(g_char);
-            }
+pub fn format_guess_for_display(guess: &str, secret: &str) -> String {
+    let mut display = String::new();
+    for (s_char, g_char) in secret.chars().zip(guess.chars()) {
+        if s_char == g_char {
+            display.push_str(&g_char.to_string().green().to_string());
+        } else if secret.contains(g_char) {
+            display.push_str(&g_char.to_string().yellow().to_string());
+        } else {
+            display.push(g_char);
         }
-        display
-    } else {
-        guess.to_string()
     }
+    display
 }
 
 pub fn format_mismatch_feedback(mismatches: &Vec<(String, Score)>, secret: &str) -> String {
     let mut feedback = "New secret does not match the score for these guesses:\n".to_string();
     for (guess, score) in mismatches {
-        let formatted_guess = format_guess_for_display(guess, secret, true);
+        let formatted_guess = format_guess_for_display(guess, secret);
         feedback.push_str(&format!(
             "Guess: {}, Expected {} bulls and {} cows\n",
             formatted_guess, score.bulls, score.cows
@@ -67,7 +63,11 @@ pub fn display_previous_guesses(
 ) {
     display_message(player, "Previous guesses:");
     for (guess, score) in previous_guesses {
-        let guess_display = format_guess_for_display(guess, secret, colorify);
+        let guess_display = if colorify {
+            format_guess_for_display(guess, secret)
+        } else {
+            guess.to_string()
+        };
         display_message(
             player,
             &format!(
@@ -100,20 +100,11 @@ pub fn read_input(player: &Player) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_format_guess_for_display_no_color() {
-        let secret = "1234";
-        let guess = "1243";
-        let result = format_guess_for_display(guess, secret, false);
-        assert_eq!(result, "1243");
-    }
-
     #[test]
     fn test_format_guess_for_display_with_color() {
         let secret = "1234";
         let guess = "1243";
-        let result = format_guess_for_display(guess, secret, true);
+        let result = format_guess_for_display(guess, secret);
         assert_eq!(
             result,
             "\u{1b}[32m1\u{1b}[0m\u{1b}[32m2\u{1b}[0m\u{1b}[33m4\u{1b}[0m\u{1b}[33m3\u{1b}[0m"
