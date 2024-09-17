@@ -42,7 +42,7 @@ pub fn format_guess_for_display(guess: &str, secret: &str, colorify: bool) -> St
     }
 }
 
-pub fn format_mismatch_feedback(mismatches: &[(String, Score)], secret: &str) -> String {
+pub fn format_mismatch_feedback(mismatches: &Vec<(String, Score)>, secret: &str) -> String {
     let mut feedback = "New secret does not match the score for these guesses:\n".to_string();
     for (guess, score) in mismatches {
         let formatted_guess = format_guess_for_display(guess, secret, true);

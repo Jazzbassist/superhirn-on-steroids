@@ -76,7 +76,7 @@ impl Game {
             .filter_map(|(prev_guess, prev_score)| {
                 let new_score = score_guess(&new_secret, prev_guess);
                 if new_score.bulls != prev_score.bulls || new_score.cows != prev_score.cows {
-                    Some((prev_guess.clone(), Score::new(prev_score.bulls, prev_score.cows)))
+                    Some((prev_guess.clone(), prev_score.clone()))
                 } else {
                     None
                 }
@@ -87,7 +87,7 @@ impl Game {
             self.secret = new_secret;
             SecretChangeResponse::Valid
         } else {
-            SecretChangeResponse::Invalid(format_mismatch_feedback(&mismatches, &new_secret))
+            SecretChangeResponse::Impossible(mismatches, self.secret.clone())
         }
     }
 
@@ -113,13 +113,22 @@ pub fn score_guess(secret: &str, guess: &str) -> Score {
 pub enum SecretChangeResponse {
     Valid,
     Invalid(String),
+    Impossible(Vec<(String, Score)>, String),
 }
 
 impl SecretChangeResponse {
-    pub fn message(&self) -> &str {
+    pub fn message(&self) -> String{
         match self {
-            SecretChangeResponse::Valid => "Secret updated successfully.",
-            SecretChangeResponse::Invalid(msg) => msg,
+            SecretChangeResponse::Valid => "Secret updated successfully.".to_string(),
+            SecretChangeResponse::Invalid(msg) => msg.to_string(),
+            SecretChangeResponse::Impossible(mismatches, secret) => format_mismatch_feedback(mismatches, secret),
+        }
+    }
+
+    pub fn is_valid(&self) -> bool {
+        match self {
+            SecretChangeResponse::Valid => true,
+            _ => false,
         }
     }
 }
@@ -176,9 +185,9 @@ mod tests {
     fn test_update_secret_invalid_mismatch() {
         let mut game = Game::new("1234".to_string());
         game.add_guess("5678".to_string(), Score::new(0, 0));
-        let response = game.change_secret("5678".to_string());
-        let expected = "New secret does not match the score for these guesses:\nGuess: \u{1b}[32m5\u{1b}[0m\u{1b}[32m6\u{1b}[0m\u{1b}[32m7\u{1b}[0m\u{1b}[32m8\u{1b}[0m, Expected 0 bulls and 0 cows\n".to_string();
+        let response = game.change_secret("1278".to_string());
+        let expected = SecretChangeResponse::Impossible(vec!(("5678".to_string(), Score::new(0, 0))), "1234".to_string());
         //let expected = format_mismatch_feedback(&vec![("5678".to_string(), (0, 0))], "5678");
-        assert_eq!(response, SecretChangeResponse::Invalid(expected));
+        assert_eq!(response, expected);
     }
 }
