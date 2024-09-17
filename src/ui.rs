@@ -81,17 +81,11 @@ pub fn read_secret(player: &Player) -> String {
     secret.trim().to_string()
 }
 
-pub fn read_guess(player: &Player, length: usize) -> Option<String> {
+pub fn read_guess(player: &Player, length: usize) -> String {
     println!("{}: Enter your guess ({} digits):", player.colored_name(), length);
     let mut guess = String::new();
     io::stdin().read_line(&mut guess).expect("Failed to read input");
-    let guess = guess.trim().to_string();
-    if guess.len() != length {
-        println!("{}: Your guess must be {} digits long!", player.colored_name(), length);
-        None
-    } else {
-        Some(guess)
-    }
+    guess.trim().to_string()
 }
 
 pub fn read_new_secret(player: &Player) -> String {

@@ -10,20 +10,29 @@ struct GameLoop {
     pub player: Player,
 }
 
-
 #[allow(dead_code)]
 impl GameLoop {
     pub fn new(secret: String) -> GameLoop {
         GameLoop {
-            game: Game::new(secret), 
-            player: Player::Seeker
+            game: Game::new(secret),
+            player: Player::Seeker,
         }
     }
 
     pub fn output_state(&mut self) {
         match self.player {
-            Player::Keeper => display_previous_guesses(&self.player, self.game.get_previous_guesses(), self.game.get_secret(), true),
-            Player::Seeker => display_previous_guesses(&self.player, self.game.get_previous_guesses(), self.game.get_secret(), false),
+            Player::Keeper => display_previous_guesses(
+                &self.player,
+                self.game.get_previous_guesses(),
+                self.game.get_secret(),
+                true,
+            ),
+            Player::Seeker => display_previous_guesses(
+                &self.player,
+                self.game.get_previous_guesses(),
+                self.game.get_secret(),
+                false,
+            ),
         }
     }
 
@@ -31,7 +40,6 @@ impl GameLoop {
         match self.player {
             Player::Keeper => self.attempt_change_secret(input),
             Player::Seeker => self.attempt_guess(input),
-            
         }
     }
 
@@ -57,7 +65,6 @@ fn main() {
 fn main_game_loop_by_struct() {
     let mut game_loop = GameLoop::new(read_secret(&Player::Keeper));
     game_loop.output_state();
-
 }
 
 pub fn old_game_loop() {
@@ -75,36 +82,52 @@ pub fn old_game_loop() {
 
 fn main_game_loop(game: &mut Game) {
     loop {
-        display_previous_guesses(&Player::Seeker, game.get_previous_guesses(), &game.get_secret(), false);
+        display_previous_guesses(
+            &Player::Seeker,
+            game.get_previous_guesses(),
+            &game.get_secret(),
+            false,
+        );
 
-        let guess = match read_guess(&Player::Seeker, game.get_secret_len()) {
-            Some(value) => value,
-            None => continue,
-        };
-
-        match game.handle_guess(guess.clone()) {
+        let guess = read_guess(&Player::Seeker, game.get_secret_len());
+        match game.handle_guess(guess) {
             Ok(score) => {
                 display_message(&Player::Seeker, &score.display());
                 if score.bulls == game.get_secret_len() {
-                    display_message(&Player::Seeker, "Congratulations! You've guessed the secret.");
-                    display_previous_guesses(&Player::Seeker, game.get_previous_guesses(), &game.get_secret(), true);
+                    display_message(
+                        &Player::Seeker,
+                        "Congratulations! You've guessed the secret.",
+                    );
+                    display_previous_guesses(
+                        &Player::Seeker,
+                        game.get_previous_guesses(),
+                        &game.get_secret(),
+                        true,
+                    );
                     break;
                 }
-            },
-            Err(msg) => display_message(&Player::Seeker, msg),
+            }
+            Err(msg) => {
+                display_message(&Player::Seeker, msg);
+                continue;
+            }
         }
 
-        display_previous_guesses(&Player::Keeper, game.get_previous_guesses(), &game.get_secret(), true);
+        display_previous_guesses(
+            &Player::Keeper,
+            game.get_previous_guesses(),
+            &game.get_secret(),
+            true,
+        );
         // Handle secret change...
         'fetch_new_secret: loop {
             let new_secret = read_new_secret(&Player::Keeper);
-        
+
             let response = game.change_secret(new_secret.clone());
             display_message(&Player::Keeper, &response.message());
             if response.is_valid() {
                 break 'fetch_new_secret;
-            }
-            else {
+            } else {
                 continue 'fetch_new_secret;
             }
         }
@@ -114,8 +137,5 @@ fn main_game_loop(game: &mut Game) {
 #[cfg(test)]
 mod tests {
     #[test]
-    pub fn _run_game() {
-
-    }
-
+    pub fn _run_game() {}
 }
