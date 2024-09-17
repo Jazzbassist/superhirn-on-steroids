@@ -84,7 +84,7 @@ impl Game {
             self.secret = new_secret;
             SecretChangeResponse::Valid
         } else {
-            SecretChangeResponse::Impossible(mismatches, self.secret.clone())
+            SecretChangeResponse::Impossible(mismatches, new_secret)
         }
     }
 
@@ -187,7 +187,7 @@ mod tests {
         let response = game.change_secret("1278".to_string());
         let expected = SecretChangeResponse::Impossible(
             vec![("5678".to_string(), Score::new(0, 0))],
-            "1234".to_string(),
+            "1278".to_string(),
         );
         //let expected = format_mismatch_feedback(&vec![("5678".to_string(), (0, 0))], "5678");
         assert_eq!(response, expected);
