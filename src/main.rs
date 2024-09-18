@@ -8,7 +8,7 @@ use ui::*;
 struct GameLoop {
     pub game: Game,
     pub player: Player,
-    pub is_over: bool
+    pub is_over: bool,
 }
 
 #[allow(dead_code)]
@@ -17,14 +17,14 @@ impl GameLoop {
         GameLoop {
             game: Game::new(secret),
             player: Player::Seeker,
-            is_over: false
+            is_over: false,
         }
     }
 
-    fn switch_player( &mut self ) {
+    fn switch_player(&mut self) {
         match self.player {
             Player::Keeper => self.player = Player::Seeker,
-            Player::Seeker => self.player = Player::Keeper
+            Player::Seeker => self.player = Player::Keeper,
         }
         self.print_state();
     }
@@ -34,7 +34,8 @@ impl GameLoop {
     }
 
     fn print_state(&self) {
-        self.player.display_guesses(self.game.get_previous_guesses());
+        self.player
+            .display_guesses(self.game.get_previous_guesses());
     }
 
     pub fn take_input(&mut self, input: &str) {
@@ -51,9 +52,12 @@ impl GameLoop {
             Err(response) => {
                 self.player.display_message(&response.message());
                 match response {
-                    ErrResponse::GuessMismatch(guesses) => self.player.display_guesses_colorified(&guesses, &new_secret),
+                    ErrResponse::GuessMismatch(guesses) => self
+                        .player
+                        .display_guesses_colorified(&guesses, &new_secret),
                     _ => (),
-                }}
+                }
+            }
         }
     }
 
@@ -63,9 +67,8 @@ impl GameLoop {
             Ok(score) => {
                 self.player.display_message(&score.display());
                 if score.bulls == self.game.get_secret_len() {
-                    self.player.display_message(
-                        "Congratulations! You've guessed the secret.",
-                    );
+                    self.player
+                        .display_message("Congratulations! You've guessed the secret.");
                     self.player.display_guesses_colorified(
                         self.game.get_previous_guesses(),
                         &self.game.get_secret(),
@@ -94,7 +97,6 @@ fn struct_game_loop() {
     }
 }
 
-
 pub fn old_game_loop() {
     let secret = Player::Keeper.read_input();
 
@@ -118,9 +120,7 @@ fn main_game_loop(game: &mut Game) {
             Ok(score) => {
                 player.display_message(&score.display());
                 if score.bulls == game.get_secret_len() {
-                    player.display_message(
-                        "Congratulations! You've guessed the secret.",
-                    );
+                    player.display_message("Congratulations! You've guessed the secret.");
                     player.display_guesses_colorified(
                         game.get_previous_guesses(),
                         &game.get_secret(),
@@ -136,10 +136,7 @@ fn main_game_loop(game: &mut Game) {
 
         let player = Player::Keeper;
 
-        player.display_guesses_colorified(
-            game.get_previous_guesses(),
-            &game.get_secret(),
-        );
+        player.display_guesses_colorified(game.get_previous_guesses(), &game.get_secret());
         // Handle secret change...
         'fetch_new_secret: loop {
             let new_secret = player.read_input();
@@ -150,7 +147,9 @@ fn main_game_loop(game: &mut Game) {
                 Err(response) => {
                     player.display_message(&response.message());
                     match response {
-                        ErrResponse::GuessMismatch(guesses) => player.display_guesses_colorified(&guesses, &new_secret),
+                        ErrResponse::GuessMismatch(guesses) => {
+                            player.display_guesses_colorified(&guesses, &new_secret)
+                        }
                         _ => (),
                     }
                     continue 'fetch_new_secret;
@@ -162,6 +161,21 @@ fn main_game_loop(game: &mut Game) {
 
 #[cfg(test)]
 mod tests {
+    use colored::Colorize;
+
+    use super::*;
     #[test]
-    pub fn _run_game() {}
+    pub fn run_game() {
+        let secret = "1234".to_string();
+        let mut gameloop = GameLoop::new(secret);
+        let inputs = [
+            "123", "1235", "1236", "1237", "123", "9210", "1231", "1231",
+        ];
+        for input in inputs {
+            assert!(!gameloop.is_over);
+            println!("{}: {}", "INPUT".yellow(), input);
+            gameloop.take_input(&input);
+        }
+        assert!(gameloop.is_over);
+    }
 }
