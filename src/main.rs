@@ -169,7 +169,14 @@ mod tests {
         let secret = "1234".to_string();
         let mut gameloop = GameLoop::new(secret);
         let inputs = [
-            "123", "1235", "1236", "1237", "123", "9210", "1231", "1231",
+            "123", //Guess: to short
+            "1235",//Guess
+            "1236",//Change Code 
+            "1237",//Guess 
+            "123", //Change Code, to short
+            "9210",//Change Code, invalid 
+            "1231",//Change Code 
+            "1231",//Guess, correct
         ];
         for input in inputs {
             assert!(!gameloop.is_over);
