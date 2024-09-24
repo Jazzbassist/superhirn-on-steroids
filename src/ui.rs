@@ -29,12 +29,10 @@ impl Player {
     }
 
     pub fn read_input(&self) -> String {
-        self.display_message(
-            &match self {
-                Player::Keeper => "Enter the new secret code (digits only):",
-                Player::Seeker => "Enter your guess:",
-            },
-        );
+        self.display_message(&match self {
+            Player::Keeper => "Enter the new secret code (digits only):",
+            Player::Seeker => "Enter your guess:",
+        });
         let mut input = String::new();
         io::stdin()
             .read_line(&mut input)
@@ -43,7 +41,11 @@ impl Player {
     }
 
     pub fn display_guesses(&self, guesses: &Vec<(String, Score)>) {
-        let formatted = [vec!("Previous Guesses:".to_string()), format_guesses(&guesses)].concat();
+        let formatted = [
+            vec!["Previous Guesses:".to_string()],
+            format_guesses(&guesses),
+        ]
+        .concat();
         self.display_message(&formatted.join("\n\t"));
     }
 

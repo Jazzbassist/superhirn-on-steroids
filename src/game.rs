@@ -15,16 +15,24 @@ impl Score {
         format!("Bulls: {}, Cows: {}", self.bulls, self.cows)
     }
 }
+
+pub enum Variant {
+    Classic,
+    ChangeSecret,
+    Curtail,
+}
 pub struct Game {
     secret: String,
     previous_guesses: Vec<(String, Score)>, // Use Score instead of tuple
+    variant: Variant,
 }
 
 impl Game {
-    pub fn new(secret: String) -> Self {
+    pub fn new(variant: Variant) -> Self {
         Game {
-            secret,
+            secret: "".to_string(),
             previous_guesses: Vec::new(),
+            variant,
         }
     }
 
@@ -55,10 +63,15 @@ impl Game {
     }
 
     pub fn change_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse> {
-        if new_secret.len() != self.secret.len() {
-            return Err(ErrResponse::LengthMismatch(self.secret.len()))
+        if new_secret.len() == 0 {
+            return Err(ErrResponse::LengthMismatch(self.secret.len()));
+        } else if self.secret.len() == 0 {
+            self.secret = new_secret.to_string();
+            return Ok(());
+        } else if new_secret.len() != self.secret.len() {
+            return Err(ErrResponse::LengthMismatch(self.secret.len()));
         } else if !new_secret.chars().all(|c| c.is_digit(10)) {
-            return Err(ErrResponse::CharsetMismatch())
+            return Err(ErrResponse::CharsetMismatch());
         } else {
             // Validate new secret against previous guesses
             let mismatches: Vec<(String, Score)> = self
@@ -76,9 +89,9 @@ impl Game {
 
             if mismatches.is_empty() {
                 self.secret = new_secret.to_string();
-                return Ok(())
+                return Ok(());
             } else {
-                return Err(ErrResponse::GuessMismatch(mismatches))
+                return Err(ErrResponse::GuessMismatch(mismatches));
             }
         }
     }
@@ -106,7 +119,9 @@ pub enum ErrResponse {
 impl ErrResponse {
     pub fn message(&self) -> String {
         match self {
-            Self::LengthMismatch(len) => format!("Input length did not match the secret. Expected {}", len),
+            Self::LengthMismatch(len) => {
+                format!("Input length did not match the secret. Expected {}", len)
+            }
             Self::CharsetMismatch() => "Expected Digits only".to_string(),
             Self::GuessMismatch(_) => "Previous Guesses did not match the new secret".to_string(),
         }
@@ -133,7 +148,8 @@ mod tests {
 
     #[test]
     fn test_update_secret_valid() {
-        let mut game = Game::new("1234".to_string());
+        let mut game = Game::new(Variant::ChangeSecret);
+        let _ = game.change_secret("1234");
         let response = game.change_secret("4321");
         assert!(response.is_ok());
         assert_eq!(game.secret, "4321".to_string());
@@ -141,32 +157,27 @@ mod tests {
 
     #[test]
     fn test_update_secret_invalid_length() {
-        let mut game = Game::new("1234".to_string());
+        let mut game = Game::new(Variant::ChangeSecret);
+        let _ = game.change_secret("1234");
         let response = game.change_secret("123");
-        assert_eq!(
-            response,
-            Err(ErrResponse::LengthMismatch(4))
-        );
+        assert_eq!(response, Err(ErrResponse::LengthMismatch(4)));
     }
 
     #[test]
     fn test_update_secret_invalid_digits() {
-        let mut game = Game::new("1234".to_string());
+        let mut game = Game::new(Variant::ChangeSecret);
+        let _ = game.change_secret("1234");
         let response = game.change_secret("123a");
-        assert_eq!(
-            response,
-            Err(ErrResponse::CharsetMismatch())
-        );
+        assert_eq!(response, Err(ErrResponse::CharsetMismatch()));
     }
 
     #[test]
     fn test_update_secret_invalid_mismatch() {
-        let mut game = Game::new("1234".to_string());
+        let mut game = Game::new(Variant::ChangeSecret);
+        let _ = game.change_secret("1234");
         game.add_guess("5678".to_string(), Score::new(0, 0));
         let response = game.change_secret("1278");
-        let expected = ErrResponse::GuessMismatch(
-            vec![("5678".to_string(), Score::new(0, 0))],
-        );
+        let expected = ErrResponse::GuessMismatch(vec![("5678".to_string(), Score::new(0, 0))]);
         //let expected = format_mismatch_feedback(&vec![("5678".to_string(), (0, 0))], "5678");
         assert_eq!(response, Err(expected))
     }
