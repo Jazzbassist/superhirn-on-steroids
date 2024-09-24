@@ -147,6 +147,22 @@ mod tests {
     }
 
     #[test]
+    fn test_init_secret_valid() {
+        let mut game = Game::new(Variant::ChangeSecret);
+        let response = game.change_secret("1234");
+        assert!(response.is_ok());
+        assert_eq!(game.secret, "1234".to_string());
+    }
+
+    #[test]
+    fn test_init_secret_empty() {
+        let mut game = Game::new(Variant::ChangeSecret);
+        let response = game.change_secret("");
+        assert!(response.is_err());
+        assert_eq!(game.secret.len(), 0);
+    }
+
+    #[test]
     fn test_update_secret_valid() {
         let mut game = Game::new(Variant::ChangeSecret);
         let _ = game.change_secret("1234");
