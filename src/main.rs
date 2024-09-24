@@ -11,7 +11,6 @@ struct GameLoop {
     pub is_over: bool,
 }
 
-#[allow(dead_code)]
 impl GameLoop {
     pub fn new(variant: Variant) -> GameLoop {
         GameLoop {
