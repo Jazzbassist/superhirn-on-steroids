@@ -16,15 +16,17 @@ impl Score {
     }
 }
 
+#[allow(dead_code)]
 pub enum Variant {
     Classic,
     ChangeSecret,
     Curtail,
 }
+
 pub struct Game {
     secret: String,
     previous_guesses: Vec<(String, Score)>, // Use Score instead of tuple
-    variant: Variant,
+    _variant: Variant,
 }
 
 impl Game {
@@ -32,7 +34,7 @@ impl Game {
         Game {
             secret: "".to_string(),
             previous_guesses: Vec::new(),
-            variant,
+            _variant: variant,
         }
     }
 
