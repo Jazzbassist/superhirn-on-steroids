@@ -47,14 +47,24 @@ impl Game {
         self.previous_guesses.push((guess, score));
     }
 
-    pub fn handle_guess(&mut self, guess: &str) -> Result<Score, &'static str> {
+    pub fn validate_guess(&mut self, guess: &str) -> Result<Score, &'static str> {
         if guess.len() != self.secret.len() {
             return Err("Invalid guess length.");
+        } else {
+            let score = score_guess(&self.secret, &guess);
+            self.add_guess(guess.to_string(), score.clone());
+            Ok(score)
         }
-
-        let score = score_guess(&self.secret, &guess);
-        self.add_guess(guess.to_string(), score.clone());
-        Ok(score)
+    }
+    pub fn handle_guess(&mut self, guess: &str) -> Result<Score, &'static str> {
+        let result = self.validate_guess(&guess);
+        match result {
+            Err(some) => Err(some),
+            Ok(score) => {
+                self.add_guess(guess.to_string(), score.clone());
+                Ok(score)
+            }
+        }
     }
 
     pub fn change_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse> {

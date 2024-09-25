@@ -14,6 +14,7 @@ pub struct GameLoop {
     pub variant: Variant,
     pub player: Player,
     pub is_over: bool,
+    pub guess_buffer: String,
 }
 
 impl GameLoop {
@@ -23,6 +24,7 @@ impl GameLoop {
             variant,
             player: Player::Keeper,
             is_over: false,
+            guess_buffer: "".to_string(),
         }
     }
 
@@ -33,7 +35,14 @@ impl GameLoop {
     pub fn take_input(&mut self, input: &str) {
         match self.player {
             Player::Keeper => self.attempt_change_secret(input),
-            Player::Seeker => self.attempt_guess(input),
+            Player::Seeker => self.do_guess(input),
+        }
+    }
+
+    fn do_guess(&mut self, new_guess: &str) {
+        match self.variant {
+            Variant::Curtail => self.buffer_guess(new_guess),
+            _ => self.attempt_guess(new_guess),
         }
     }
 
@@ -53,7 +62,9 @@ impl GameLoop {
     fn attempt_change_secret(&mut self, new_secret: &str) {
         let result = self.game.change_secret(new_secret);
         match result {
-            Ok(()) => self.switch_player(),
+            Ok(()) => {
+                self.handle_successful_secret_change(new_secret);
+                },
             Err(response) => {
                 self.player.display_message(&response.message());
                 match response {
@@ -63,6 +74,23 @@ impl GameLoop {
                     _ => (),
                 }
             }
+        }
+    }
+
+    fn handle_successful_secret_change(&mut self, new_secret: &str) {
+        match self.variant {
+            Variant::Curtail => {
+                self.player.display_message(new_secret);
+            },
+            _ => self.switch_player()
+        }
+    
+    }
+
+    fn buffer_guess(&mut self, new_guess: &str) {
+        if self.game.validate_guess(new_guess).is_ok() {
+            self.guess_buffer = new_guess.to_string();
+            self.switch_player();
         }
     }
 
