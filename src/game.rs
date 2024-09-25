@@ -69,7 +69,7 @@ impl Game {
         }
     }
 
-    pub fn validate_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse> {
+    fn validate_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse> {
         if new_secret.len() == 0 {
             return Err(ErrResponse::LengthMismatch(self.secret.len()));
         } else if self.secret.len() == 0 {
