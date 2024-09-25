@@ -26,6 +26,17 @@ impl GameLoop {
         }
     }
 
+    pub fn prompt_input(&mut self) -> String {
+        self.player.read_input()
+    }
+
+    pub fn take_input(&mut self, input: &str) {
+        match self.player {
+            Player::Keeper => self.attempt_change_secret(input),
+            Player::Seeker => self.attempt_guess(input),
+        }
+    }
+
     fn switch_player(&mut self) {
         match self.player {
             Player::Keeper => self.player = Player::Seeker,
@@ -34,20 +45,9 @@ impl GameLoop {
         self.print_state();
     }
 
-    pub fn prompt_input(&mut self) -> String {
-        self.player.read_input()
-    }
-
     fn print_state(&self) {
         self.player
             .display_guesses(self.game.get_previous_guesses());
-    }
-
-    pub fn take_input(&mut self, input: &str) {
-        match self.player {
-            Player::Keeper => self.attempt_change_secret(input),
-            Player::Seeker => self.attempt_guess(input),
-        }
     }
 
     fn attempt_change_secret(&mut self, new_secret: &str) {
@@ -95,6 +95,7 @@ impl GameLoop {
         }
     }
 }
+
 #[cfg(test)]
 mod tests {
     use colored::Colorize;
