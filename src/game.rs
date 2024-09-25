@@ -16,25 +16,18 @@ impl Score {
     }
 }
 
-#[allow(dead_code)]
-pub enum Variant {
-    Classic,
-    ChangeSecret,
-    Curtail,
-}
-
 pub struct Game {
     secret: String,
+    previous_secrets: Vec<String>,
     previous_guesses: Vec<(String, Score)>, // Use Score instead of tuple
-    _variant: Variant,
 }
 
 impl Game {
-    pub fn new(variant: Variant) -> Self {
+    pub fn new() -> Self {
         Game {
             secret: "".to_string(),
+            previous_secrets: Vec::new(),
             previous_guesses: Vec::new(),
-            _variant: variant,
         }
     }
 
@@ -65,6 +58,18 @@ impl Game {
     }
 
     pub fn change_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse> {
+        let result = self.validate_secret(new_secret);
+        match result {
+            Ok(some) => {
+                self.previous_secrets
+                    .push(std::mem::replace(&mut self.secret, new_secret.to_string()));
+                Ok(some)
+            }
+            err => err,
+        }
+    }
+
+    pub fn validate_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse> {
         if new_secret.len() == 0 {
             return Err(ErrResponse::LengthMismatch(self.secret.len()));
         } else if self.secret.len() == 0 {
@@ -74,6 +79,8 @@ impl Game {
             return Err(ErrResponse::LengthMismatch(self.secret.len()));
         } else if !new_secret.chars().all(|c| c.is_digit(10)) {
             return Err(ErrResponse::CharsetMismatch());
+        } else if self.previous_secrets.contains(&new_secret.to_string()) {
+            return Err(ErrResponse::NoSecretChange());
         } else {
             // Validate new secret against previous guesses
             let mismatches: Vec<(String, Score)> = self
@@ -89,11 +96,10 @@ impl Game {
                 })
                 .collect();
 
-            if mismatches.is_empty() {
-                self.secret = new_secret.to_string();
-                return Ok(());
-            } else {
+            if !mismatches.is_empty() {
                 return Err(ErrResponse::GuessMismatch(mismatches));
+            } else {
+                return Ok(());
             }
         }
     }
@@ -115,6 +121,7 @@ pub fn score_guess(secret: &str, guess: &str) -> Score {
 pub enum ErrResponse {
     LengthMismatch(usize),
     CharsetMismatch(),
+    NoSecretChange(),
     GuessMismatch(Vec<(String, Score)>),
 }
 
@@ -126,6 +133,7 @@ impl ErrResponse {
             }
             Self::CharsetMismatch() => "Expected Digits only".to_string(),
             Self::GuessMismatch(_) => "Previous Guesses did not match the new secret".to_string(),
+            Self::NoSecretChange() => "The secret was chosen before".to_string(),
         }
     }
 }
@@ -150,7 +158,7 @@ mod tests {
 
     #[test]
     fn test_init_secret_valid() {
-        let mut game = Game::new(Variant::ChangeSecret);
+        let mut game = Game::new();
         let response = game.change_secret("1234");
         assert!(response.is_ok());
         assert_eq!(game.secret, "1234".to_string());
@@ -158,7 +166,7 @@ mod tests {
 
     #[test]
     fn test_init_secret_empty() {
-        let mut game = Game::new(Variant::ChangeSecret);
+        let mut game = Game::new();
         let response = game.change_secret("");
         assert!(response.is_err());
         assert_eq!(game.secret.len(), 0);
@@ -166,7 +174,7 @@ mod tests {
 
     #[test]
     fn test_update_secret_valid() {
-        let mut game = Game::new(Variant::ChangeSecret);
+        let mut game = Game::new();
         let _ = game.change_secret("1234");
         let response = game.change_secret("4321");
         assert!(response.is_ok());
@@ -175,15 +183,23 @@ mod tests {
 
     #[test]
     fn test_update_secret_invalid_length() {
-        let mut game = Game::new(Variant::ChangeSecret);
+        let mut game = Game::new();
         let _ = game.change_secret("1234");
         let response = game.change_secret("123");
         assert_eq!(response, Err(ErrResponse::LengthMismatch(4)));
     }
 
     #[test]
+    fn test_update_secret_no_change() {
+        let mut game = Game::new();
+        let _ = game.change_secret("1234");
+        let response = game.change_secret("1234");
+        assert_eq!(response, Err(ErrResponse::NoSecretChange()));
+    }
+
+    #[test]
     fn test_update_secret_invalid_digits() {
-        let mut game = Game::new(Variant::ChangeSecret);
+        let mut game = Game::new();
         let _ = game.change_secret("1234");
         let response = game.change_secret("123a");
         assert_eq!(response, Err(ErrResponse::CharsetMismatch()));
@@ -191,11 +207,11 @@ mod tests {
 
     #[test]
     fn test_update_secret_invalid_mismatch() {
-        let mut game = Game::new(Variant::ChangeSecret);
+        let mut game = Game::new();
         let _ = game.change_secret("1234");
-        game.add_guess("5678".to_string(), Score::new(0, 0));
+        game.add_guess("5673".to_string(), Score::new(0, 1));
         let response = game.change_secret("1278");
-        let expected = ErrResponse::GuessMismatch(vec![("5678".to_string(), Score::new(0, 0))]);
+        let expected = ErrResponse::GuessMismatch(vec![("5673".to_string(), Score::new(0, 1))]);
         //let expected = format_mismatch_feedback(&vec![("5678".to_string(), (0, 0))], "5678");
         assert_eq!(response, Err(expected))
     }

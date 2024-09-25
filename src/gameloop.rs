@@ -1,8 +1,17 @@
 use crate::game::*;
 use crate::ui::*;
 
+#[allow(dead_code)]
+pub enum Variant {
+    Classic,
+    ChangeSecret,
+    Curtail,
+}
+
+#[allow(dead_code)]
 pub struct GameLoop {
     pub game: Game,
+    pub variant: Variant,
     pub player: Player,
     pub is_over: bool,
 }
@@ -10,7 +19,8 @@ pub struct GameLoop {
 impl GameLoop {
     pub fn new(variant: Variant) -> GameLoop {
         GameLoop {
-            game: Game::new(variant),
+            game: Game::new(),
+            variant,
             player: Player::Keeper,
             is_over: false,
         }
@@ -77,11 +87,11 @@ impl GameLoop {
             }
         }
     }
-    pub fn struct_game_loop() {
-        let mut gameloop = GameLoop::new(Variant::ChangeSecret);
-        while !gameloop.is_over {
-            let input = &gameloop.prompt_input();
-            gameloop.take_input(&input);
+
+    pub fn run(&mut self) {
+        while !self.is_over {
+            let input = &self.prompt_input();
+            self.take_input(&input);
         }
     }
 }
