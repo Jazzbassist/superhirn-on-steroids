@@ -10,21 +10,21 @@ pub enum Variant {
 
 #[allow(dead_code)]
 pub struct GameLoop {
-    pub game: GameStruct,
     pub variant: Variant,
     pub player: Player,
     pub is_over: bool,
     pub guess_buffer: String,
+    pub game: Box<dyn Game>,
 }
 
 impl GameLoop {
     pub fn new(variant: Variant) -> GameLoop {
         GameLoop {
-            game: GameStruct::new(),
             variant,
             player: Player::Keeper,
             is_over: false,
             guess_buffer: "".to_string(),
+            game: Box::new(GameStruct::new()),
         }
     }
 

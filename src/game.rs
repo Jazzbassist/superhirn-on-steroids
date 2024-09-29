@@ -16,6 +16,15 @@ impl Score {
     }
 }
 
+pub trait Game {
+    fn get_previous_guesses(&self) -> &Vec<(String, Score)>;
+    fn get_secret(&self) -> &String;
+    fn get_secret_len(&self) -> usize;
+    fn validate_guess(&mut self, guess: &str) -> Result<Score, &'static str>;
+    fn handle_guess(&mut self, guess: &str) -> Result<Score, &'static str>;
+    fn change_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse>;
+}
+
 pub struct GameStruct {
     secret: String,
     previous_secrets: Vec<String>,
@@ -31,51 +40,8 @@ impl GameStruct {
         }
     }
 
-    pub fn get_previous_guesses(&self) -> &Vec<(String, Score)> {
-        &self.previous_guesses
-    }
-
-    pub fn get_secret(&self) -> &String {
-        &self.secret
-    }
-
-    pub fn get_secret_len(&self) -> usize {
-        self.secret.len()
-    }
-
     fn add_guess(&mut self, guess: String, score: Score) {
         self.previous_guesses.push((guess, score));
-    }
-
-    pub fn validate_guess(&mut self, guess: &str) -> Result<Score, &'static str> {
-        if guess.len() != self.secret.len() {
-            return Err("Invalid guess length.");
-        } else {
-            let score = score_guess(&self.secret, &guess);
-            Ok(score)
-        }
-    }
-    pub fn handle_guess(&mut self, guess: &str) -> Result<Score, &'static str> {
-        let result = self.validate_guess(&guess);
-        match result {
-            Err(some) => Err(some),
-            Ok(score) => {
-                self.add_guess(guess.to_string(), score.clone());
-                Ok(score)
-            }
-        }
-    }
-
-    pub fn change_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse> {
-        let result = self.validate_secret(new_secret);
-        match result {
-            Ok(some) => {
-                self.previous_secrets
-                    .push(std::mem::replace(&mut self.secret, new_secret.to_string()));
-                Ok(some)
-            }
-            err => err,
-        }
     }
 
     fn validate_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse> {
@@ -110,6 +76,51 @@ impl GameStruct {
             } else {
                 return Ok(());
             }
+        }
+    }
+}
+
+impl Game for GameStruct {
+    fn get_previous_guesses(&self) -> &Vec<(String, Score)> {
+        &self.previous_guesses
+    }
+
+    fn get_secret(&self) -> &String {
+        &self.secret
+    }
+
+    fn get_secret_len(&self) -> usize {
+        self.secret.len()
+    }
+
+    fn validate_guess(&mut self, guess: &str) -> Result<Score, &'static str> {
+        if guess.len() != self.secret.len() {
+            return Err("Invalid guess length.");
+        } else {
+            let score = score_guess(&self.secret, &guess);
+            Ok(score)
+        }
+    }
+    fn handle_guess(&mut self, guess: &str) -> Result<Score, &'static str> {
+        let result = self.validate_guess(&guess);
+        match result {
+            Err(some) => Err(some),
+            Ok(score) => {
+                self.add_guess(guess.to_string(), score.clone());
+                Ok(score)
+            }
+        }
+    }
+
+    fn change_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse> {
+        let result = self.validate_secret(new_secret);
+        match result {
+            Ok(some) => {
+                self.previous_secrets
+                    .push(std::mem::replace(&mut self.secret, new_secret.to_string()));
+                Ok(some)
+            }
+            err => err,
         }
     }
 }
