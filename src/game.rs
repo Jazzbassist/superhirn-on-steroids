@@ -16,15 +16,15 @@ impl Score {
     }
 }
 
-pub struct Game {
+pub struct GameStruct {
     secret: String,
     previous_secrets: Vec<String>,
     previous_guesses: Vec<(String, Score)>, // Use Score instead of tuple
 }
 
-impl Game {
+impl GameStruct {
     pub fn new() -> Self {
-        Game {
+        GameStruct {
             secret: "".to_string(),
             previous_secrets: Vec::new(),
             previous_guesses: Vec::new(),
@@ -167,7 +167,7 @@ mod tests {
 
     #[test]
     fn test_init_secret_valid() {
-        let mut game = Game::new();
+        let mut game = GameStruct::new();
         let response = game.change_secret("1234");
         assert!(response.is_ok());
         assert_eq!(game.secret, "1234".to_string());
@@ -175,7 +175,7 @@ mod tests {
 
     #[test]
     fn test_init_secret_empty() {
-        let mut game = Game::new();
+        let mut game = GameStruct::new();
         let response = game.change_secret("");
         assert!(response.is_err());
         assert_eq!(game.secret.len(), 0);
@@ -183,7 +183,7 @@ mod tests {
 
     #[test]
     fn test_update_secret_valid() {
-        let mut game = Game::new();
+        let mut game = GameStruct::new();
         let _ = game.change_secret("1234");
         let response = game.change_secret("4321");
         assert!(response.is_ok());
@@ -192,7 +192,7 @@ mod tests {
 
     #[test]
     fn test_update_secret_invalid_length() {
-        let mut game = Game::new();
+        let mut game = GameStruct::new();
         let _ = game.change_secret("1234");
         let response = game.change_secret("123");
         assert_eq!(response, Err(ErrResponse::LengthMismatch(4)));
@@ -200,7 +200,7 @@ mod tests {
 
     #[test]
     fn test_update_secret_no_change() {
-        let mut game = Game::new();
+        let mut game = GameStruct::new();
         let _ = game.change_secret("1234");
         let response = game.change_secret("1234");
         assert_eq!(response, Err(ErrResponse::NoSecretChange()));
@@ -208,7 +208,7 @@ mod tests {
 
     #[test]
     fn test_update_secret_invalid_digits() {
-        let mut game = Game::new();
+        let mut game = GameStruct::new();
         let _ = game.change_secret("1234");
         let response = game.change_secret("123a");
         assert_eq!(response, Err(ErrResponse::CharsetMismatch()));
@@ -216,7 +216,7 @@ mod tests {
 
     #[test]
     fn test_update_secret_invalid_mismatch() {
-        let mut game = Game::new();
+        let mut game = GameStruct::new();
         let _ = game.change_secret("1234");
         game.add_guess("5673".to_string(), Score::new(0, 1));
         let response = game.change_secret("1278");

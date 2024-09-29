@@ -10,7 +10,7 @@ pub enum Variant {
 
 #[allow(dead_code)]
 pub struct GameLoop {
-    pub game: Game,
+    pub game: GameStruct,
     pub variant: Variant,
     pub player: Player,
     pub is_over: bool,
@@ -20,7 +20,7 @@ pub struct GameLoop {
 impl GameLoop {
     pub fn new(variant: Variant) -> GameLoop {
         GameLoop {
-            game: Game::new(),
+            game: GameStruct::new(),
             variant,
             player: Player::Keeper,
             is_over: false,
