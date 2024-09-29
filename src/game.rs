@@ -25,6 +25,49 @@ pub trait Game {
     fn change_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse>;
 }
 
+pub struct BufferGame {
+    game: GameStruct,
+    buffered_guess: Option<String>,
+    buffered_secret: Option<String>,
+}
+
+impl BufferGame {
+    pub fn new() -> Self {
+        BufferGame {
+            game: GameStruct::new(),
+            buffered_guess: Option::None,
+            buffered_secret: Option::None,
+        }
+    }
+}
+
+impl Game for BufferGame {
+    fn get_previous_guesses(&self) -> &Vec<(String, Score)> {
+        self.game.get_previous_guesses()
+    }
+
+    fn get_secret(&self) -> &String {
+        self.game.get_secret()
+    }
+
+    fn get_secret_len(&self) -> usize {
+        self.game.get_secret_len()
+    }
+
+    fn validate_guess(&mut self, guess: &str) -> Result<Score, &'static str> {
+        self.game.validate_guess(guess)
+    }
+
+    fn handle_guess(&mut self, guess: &str) -> Result<Score, &'static str> {
+        self.buffered_guess = guess.to_string();
+        Ok(())
+    }
+
+    fn change_secret(&mut self, new_secret: &str) -> Result<(), ErrResponse> {
+        self.game.change_secret(new_secret)
+    }
+}
+
 pub struct GameStruct {
     secret: String,
     previous_secrets: Vec<String>,

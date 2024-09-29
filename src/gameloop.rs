@@ -9,25 +9,35 @@ pub enum Variant {
 }
 
 #[allow(dead_code)]
-pub struct GameLoop {
-    pub variant: Variant,
+pub struct GameLoop<GAME: Game> {
     pub player: Player,
     pub is_over: bool,
-    pub guess_buffer: String,
-    pub game: Box<dyn Game>,
+    pub game: GAME,
 }
 
-impl GameLoop {
-    pub fn new(variant: Variant) -> GameLoop {
+impl GameLoop<GameStruct> {
+    pub fn new_classic() -> GameLoop<GameStruct> {
+        let game = GameStruct::new();
         GameLoop {
-            variant,
             player: Player::Keeper,
             is_over: false,
-            guess_buffer: "".to_string(),
-            game: Box::new(GameStruct::new()),
+            game,
         }
     }
+}
 
+impl GameLoop<BufferGame> {
+    pub fn new_buffer() -> GameLoop<BufferGame> {
+        let game = BufferGame::new();
+        GameLoop {
+            player: Player::Keeper,
+            is_over: false,
+            game,
+        }
+    }
+}
+
+impl<GAME: Game> GameLoop<GAME> {
     pub fn prompt_input(&mut self) -> String {
         self.player.read_input()
     }
@@ -40,10 +50,7 @@ impl GameLoop {
     }
 
     fn do_guess(&mut self, new_guess: &str) {
-        match self.variant {
-            Variant::Curtail => self.buffer_guess(new_guess),
-            _ => self.attempt_guess(new_guess),
-        }
+        self.attempt_guess(new_guess);
     }
 
     fn switch_player(&mut self) {
@@ -78,21 +85,15 @@ impl GameLoop {
     }
 
     fn handle_successful_secret_change(&mut self, _new_secret: &str) {
-        match self.variant {
-            Variant::Curtail => {
-                self.switch_player();
-                let _ = self.game.handle_guess(&self.guess_buffer);
-            }
-            _ => self.switch_player(),
-        }
+        self.switch_player();
     }
 
-    fn buffer_guess(&mut self, new_guess: &str) {
-        if self.game.validate_guess(new_guess).is_ok() {
-            self.guess_buffer = new_guess.to_string();
-            self.switch_player();
-        }
-    }
+    // fn buffer_guess(&mut self, new_guess: &str) {
+    //     if self.game.validate_guess(new_guess).is_ok() {
+    //         self.guess_buffer = new_guess.to_string();
+    //         self.switch_player();
+    //     }
+    // }
 
     fn attempt_guess(&mut self, new_guess: &str) {
         let result = self.game.handle_guess(new_guess);
