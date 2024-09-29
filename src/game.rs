@@ -52,7 +52,6 @@ impl Game {
             return Err("Invalid guess length.");
         } else {
             let score = score_guess(&self.secret, &guess);
-            self.add_guess(guess.to_string(), score.clone());
             Ok(score)
         }
     }

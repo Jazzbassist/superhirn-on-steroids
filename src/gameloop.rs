@@ -64,7 +64,7 @@ impl GameLoop {
         match result {
             Ok(()) => {
                 self.handle_successful_secret_change(new_secret);
-                },
+            }
             Err(response) => {
                 self.player.display_message(&response.message());
                 match response {
@@ -77,14 +77,14 @@ impl GameLoop {
         }
     }
 
-    fn handle_successful_secret_change(&mut self, new_secret: &str) {
+    fn handle_successful_secret_change(&mut self, _new_secret: &str) {
         match self.variant {
             Variant::Curtail => {
-                self.player.display_message(new_secret);
-            },
-            _ => self.switch_player()
+                self.switch_player();
+                let _ = self.game.handle_guess(&self.guess_buffer);
+            }
+            _ => self.switch_player(),
         }
-    
     }
 
     fn buffer_guess(&mut self, new_guess: &str) {
