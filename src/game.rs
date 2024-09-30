@@ -1,7 +1,5 @@
 // game.rs
 
-use std::ascii::AsciiExt;
-
 #[derive(PartialEq, Clone, Debug)]
 pub struct Score {
     pub bulls: usize,

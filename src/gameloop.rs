@@ -1,5 +1,3 @@
-use std::mem;
-
 use crate::game::*;
 use crate::ui::*;
 
@@ -67,7 +65,6 @@ impl GameLoop {
         let result = self.game.change_secret(new_secret);
         match result {
             Ok(()) => {
-                println!("secret change ok!");
                 self.handle_successful_secret_change(new_secret);
             }
             Err(response) => {
@@ -98,7 +95,7 @@ impl GameLoop {
 
     fn buffer_guess(&mut self, new_guess: &str) {
         if self.game.validate_guess(new_guess).is_ok() {
-            self.guess_buffer = (new_guess.to_string());
+            self.guess_buffer = new_guess.to_string();
             self.switch_player();
         }
     }
