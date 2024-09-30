@@ -1,5 +1,7 @@
 // game.rs
 
+use std::ascii::AsciiExt;
+
 #[derive(PartialEq, Clone, Debug)]
 pub struct Score {
     pub bulls: usize,
@@ -70,8 +72,8 @@ impl Game {
         let result = self.validate_secret(new_secret);
         match result {
             Ok(some) => {
-                self.previous_secrets
-                    .push(std::mem::replace(&mut self.secret, new_secret.to_string()));
+                self.previous_secrets.push(new_secret.to_string());
+                self.secret = new_secret.to_string();
                 Ok(some)
             }
             err => err,

@@ -1,3 +1,5 @@
+use std::mem;
+
 use crate::game::*;
 use crate::ui::*;
 
@@ -15,6 +17,7 @@ pub struct GameLoop {
     pub player: Player,
     pub is_over: bool,
     pub guess_buffer: String,
+    pub secret_buffer: String,
 }
 
 impl GameLoop {
@@ -25,6 +28,7 @@ impl GameLoop {
             player: Player::Keeper,
             is_over: false,
             guess_buffer: "".to_string(),
+            secret_buffer: "".to_string(),
         }
     }
 
@@ -63,6 +67,7 @@ impl GameLoop {
         let result = self.game.change_secret(new_secret);
         match result {
             Ok(()) => {
+                println!("secret change ok!");
                 self.handle_successful_secret_change(new_secret);
             }
             Err(response) => {
@@ -80,8 +85,12 @@ impl GameLoop {
     fn handle_successful_secret_change(&mut self, _new_secret: &str) {
         match self.variant {
             Variant::Curtail => {
-                self.switch_player();
-                let _ = self.game.handle_guess(&self.guess_buffer);
+                let guess = &self.guess_buffer.clone();
+                if !guess.is_empty() {
+                    self.attempt_guess(guess);
+                } else {
+                    self.switch_player();
+                }
             }
             _ => self.switch_player(),
         }
@@ -89,7 +98,7 @@ impl GameLoop {
 
     fn buffer_guess(&mut self, new_guess: &str) {
         if self.game.validate_guess(new_guess).is_ok() {
-            self.guess_buffer = new_guess.to_string();
+            self.guess_buffer = (new_guess.to_string());
             self.switch_player();
         }
     }
