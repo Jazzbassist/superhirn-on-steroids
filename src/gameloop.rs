@@ -2,20 +2,20 @@ use crate::game::*;
 use crate::ui::*;
 
 #[allow(dead_code)]
+#[derive(PartialEq)]
 pub enum Variant {
     Classic,
     ChangeSecret,
     Curtail,
 }
 
-#[allow(dead_code)]
 pub struct GameLoop {
-    pub game: Game,
-    pub variant: Variant,
-    pub player: Player,
-    pub is_over: bool,
-    pub guess_buffer: String,
-    pub secret_buffer: String,
+    game: Game,
+    variant: Variant,
+    player: Player,
+    is_over: bool,
+    guess_buffer: String,
+    secret_buffer: String,
 }
 
 impl GameLoop {
@@ -36,8 +36,18 @@ impl GameLoop {
 
     pub fn take_input(&mut self, input: &str) {
         match self.player {
-            Player::Keeper => self.attempt_change_secret(input),
+            Player::Keeper => self.do_change_secret(input),
             Player::Seeker => self.do_guess(input),
+        }
+    }
+
+    fn do_change_secret(&mut self, new_secret: &str) {
+        if self.variant == Variant::Curtail && self.secret_buffer.is_empty() {
+            if self.game.validate_secret(new_secret).is_ok() {
+                self.secret_buffer = new_secret.to_string();
+            }
+        } else {
+            self.attempt_change_secret(new_secret)
         }
     }
 
