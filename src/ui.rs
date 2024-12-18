@@ -1,37 +1,52 @@
 // ui.rs
 use crate::game::*;
 use colored::Colorize;
-use std::io;
 
-pub enum Player {
+use std::io;
+pub enum PlayerType {
     Keeper,
     Seeker,
 }
 
-impl Player {
-    fn as_str(&self) -> &str {
+impl PlayerType {
+    pub fn colored_name(&self) -> String {
         match self {
-            Player::Keeper => "Keeper",
-            Player::Seeker => "Seeker",
-        }
-    }
-
-    fn colored_name(&self) -> String {
-        match self {
-            Player::Keeper => self.as_str().green(),
-            Player::Seeker => self.as_str().red(),
+            PlayerType::Keeper => "Keeper".red(),
+            PlayerType::Seeker => "Seeker".green(),
         }
         .to_string()
     }
+}
+pub struct IO {}
+
+impl IO {
+    pub fn output(&self, message: &str) {
+        println!("{}", message);
+    }
+}
+
+pub struct Player {
+    player_type: PlayerType,
+    io: IO,
+}
+
+impl Player {
+    pub fn as_str(&self) -> &str {
+        match self.player_type {
+            PlayerType::Keeper => "Keeper",
+            PlayerType::Seeker => "Seeker",
+        }
+    }
 
     pub fn display_message(&self, message: &str) {
-        println!("{}: {}", self.colored_name(), message);
+        self.io
+            .output(format!("{}: {}", self.player_type.colored_name(), message).as_str());
     }
 
     pub fn read_input(&self) -> String {
-        self.display_message(&match self {
-            Player::Keeper => "Enter the new secret code (digits only):",
-            Player::Seeker => "Enter your guess:",
+        self.display_message(&match self.player_type {
+            PlayerType::Keeper => "Enter the new secret code (digits only):",
+            PlayerType::Seeker => "Enter your guess:",
         });
         let mut input = String::new();
         io::stdin()
@@ -54,7 +69,7 @@ impl Player {
         self.display_guesses(&colorified);
     }
 }
-
+//nonplayer?
 fn colorify_guess(guess: &str, secret: &str) -> String {
     let mut display = String::new();
     for (s_char, g_char) in secret.chars().zip(guess.chars()) {

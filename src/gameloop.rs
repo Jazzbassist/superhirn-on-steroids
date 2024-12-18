@@ -23,7 +23,7 @@ impl GameLoop {
         GameLoop {
             game: Game::new(),
             variant,
-            player: Player::Keeper,
+            player: Player::new(),
             is_over: false,
             guess_buffer: "".to_string(),
             secret_buffer: "".to_string(),
@@ -31,13 +31,13 @@ impl GameLoop {
     }
 
     pub fn prompt_input(&mut self) -> String {
-        self.player.read_input()
+        self.player.fetch_input()
     }
 
     pub fn take_input(&mut self, input: &str) {
         match self.player {
-            Player::Keeper => self.do_change_secret(input),
-            Player::Seeker => self.do_guess(input),
+            PlayerType::Keeper => self.do_change_secret(input),
+            PlayerType::Seeker => self.do_guess(input),
         }
     }
 
@@ -59,9 +59,10 @@ impl GameLoop {
     }
 
     fn switch_player(&mut self) {
+        self.player.switch();
         match self.player {
-            Player::Keeper => self.player = Player::Seeker,
-            Player::Seeker => self.player = Player::Keeper,
+            PlayerType::Keeper => self.player = PlayerType::Seeker,
+            PlayerType::Seeker => self.player = PlayerType::Keeper,
         }
         self.print_state();
     }
