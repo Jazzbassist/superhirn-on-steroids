@@ -16,3 +16,14 @@ pub fn init(_variant: String) {
 pub fn add (a: usize, b: usize) -> usize {
     a+b
 }
+
+
+#[wasm_bindgen]
+extern "C" {
+    pub fn alert(s: &str);
+}
+
+#[wasm_bindgen]
+pub fn greet(name: &str) {
+    alert(&format!("Hello, {}!", name));
+}
