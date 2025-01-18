@@ -64,6 +64,8 @@ impl GameLoop {
             Player::Keeper => self.player = Player::Seeker,
             Player::Seeker => self.player = Player::Keeper,
         }
+        //move this to UI
+        print!("{}[2J", 27 as char);
         self.print_state();
     }
 
