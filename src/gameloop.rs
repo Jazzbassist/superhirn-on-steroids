@@ -1,6 +1,6 @@
 use crate::game::ErrResponse;
 use crate::game::Game;
-use crate::ui::Player;
+use crate::ui::terminal::Player;
 
 #[allow(dead_code)]
 #[derive(PartialEq)]
