@@ -1,8 +1,8 @@
 // ui.rs
-use crate::game::Score;
 use colored::Colorize;
 use std::io;
 use super::Ui;
+use super::Score;
 
 pub enum Player {
     Keeper,

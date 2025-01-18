@@ -2,6 +2,7 @@
 mod game;
 mod gameloop;
 mod ui;
+mod score;
 
 use gameloop::*;
 

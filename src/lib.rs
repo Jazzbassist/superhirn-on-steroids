@@ -2,6 +2,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 mod game;
 mod gameloop;
 mod ui;
+mod score;
 
 use gameloop::*;
 

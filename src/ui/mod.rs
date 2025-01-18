@@ -1,6 +1,6 @@
 pub mod terminal;
 
-use crate::game::Score;
+use crate::score::Score;
 
 #[allow(dead_code)]
 pub trait Ui {
