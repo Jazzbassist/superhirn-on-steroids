@@ -1,6 +1,6 @@
 use crate::game::ErrResponse;
 use crate::game::Game;
-use crate::ui::{terminal::Player, Ui};
+use crate::ui::{terminaluser::TerminalUser, Ui};
 
 #[allow(dead_code)]
 #[derive(PartialEq)]
@@ -13,7 +13,7 @@ pub enum Variant {
 pub struct GameLoop {
     game: Game,
     variant: Variant,
-    player: Player,
+    player: TerminalUser,
     is_over: bool,
     guess_buffer: String,
     secret_buffer: String,
@@ -24,7 +24,7 @@ impl GameLoop {
         GameLoop {
             game: Game::new(),
             variant,
-            player: Player::Keeper,
+            player: TerminalUser::Keeper,
             is_over: false,
             guess_buffer: "".to_string(),
             secret_buffer: "".to_string(),
@@ -37,8 +37,8 @@ impl GameLoop {
 
     pub fn take_input(&mut self, input: &str) {
         match self.player {
-            Player::Keeper => self.do_change_secret(input),
-            Player::Seeker | Player::Seeker2 => self.do_guess(input),
+            TerminalUser::Keeper => self.do_change_secret(input),
+            TerminalUser::Seeker | TerminalUser::Seeker2 => self.do_guess(input),
         }
     }
 
@@ -61,9 +61,9 @@ impl GameLoop {
 
     fn switch_player(&mut self) {
         match self.player {
-            Player::Keeper => self.player = Player::Seeker,
-            Player::Seeker => self.player = Player::Seeker2,
-            Player::Seeker2 => self.player = Player::Keeper
+            TerminalUser::Keeper => self.player = TerminalUser::Seeker,
+            TerminalUser::Seeker => self.player = TerminalUser::Seeker2,
+            TerminalUser::Seeker2 => self.player = TerminalUser::Keeper
         }
         //move this to UI
         print!("{}[2J", 27 as char);
@@ -86,7 +86,7 @@ impl GameLoop {
                 match response {
                     ErrResponse::GuessMismatch(guesses) => self
                         .player
-                        .display_guesses_colorified(&guesses, &new_secret),
+                        .display_guesses_with_info(&guesses, &new_secret),
                     _ => (),
                 }
             }
@@ -122,7 +122,7 @@ impl GameLoop {
                 if score.bulls == self.game.get_secret_len() {
                     self.player
                         .display_message("Congratulations! You've guessed the secret.");
-                    self.player.display_guesses_colorified(
+                    self.player.display_guesses_with_info(
                         self.game.get_previous_guesses(),
                         &self.game.get_secret(),
                     );

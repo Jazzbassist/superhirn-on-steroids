@@ -4,13 +4,13 @@ use std::io;
 use super::Ui;
 use super::Score;
 
-pub enum Player {
+pub enum TerminalUser {
     Keeper,
     Seeker,
     Seeker2
 }
 
-impl Ui for Player {
+impl Ui for TerminalUser {
     fn display_guesses(&self, guesses: &Vec<(String, Score)>) {
         let formatted = [
             vec!["Previous Guesses:".to_string()],
@@ -19,33 +19,20 @@ impl Ui for Player {
         .concat();
         self.display_message(&formatted.join("\n\t"));
     }
-}
 
-impl Player {
-    fn as_str(&self) -> &str {
-        match self {
-            Player::Keeper => "Keeper",
-            Player::Seeker => "Seeker",
-            Player::Seeker2 => "Seeker2",
-        }
+    fn display_guesses_with_info(&self, guesses: &Vec<(String, Score)>, secret: &str) {
+        let colorified = colorify_guesses(guesses, secret);
+        self.display_guesses(&colorified);
     }
 
-    fn colored_name(&self) -> String {
-        match self {
-            Player::Keeper => self.as_str().green(),
-            Player::Seeker | Player::Seeker2 => self.as_str().red(),
-        }
-        .to_string()
-    }
-
-    pub fn display_message(&self, message: &str) {
+    fn display_message(&self, message: &str) {
         println!("{}: {}", self.colored_name(), message);
     }
 
-    pub fn read_input(&self) -> String {
+    fn read_input(&self) -> String {
         self.display_message(&match self {
-            Player::Keeper => "Enter the new secret code (digits only):",
-            Player::Seeker | Player::Seeker2 => "Enter your guess:",
+            TerminalUser::Keeper => "Enter the new secret code (digits only):",
+            TerminalUser::Seeker | TerminalUser::Seeker2 => "Enter your guess:",
         });
         let mut input = String::new();
         io::stdin()
@@ -53,10 +40,23 @@ impl Player {
             .expect("Failed to read new secret");
         input.trim().to_string()
     }
+}
 
-    pub fn display_guesses_colorified(&self, guesses: &Vec<(String, Score)>, secret: &str) {
-        let colorified = colorify_guesses(guesses, secret);
-        self.display_guesses(&colorified);
+impl TerminalUser {
+    fn as_str(&self) -> &str {
+        match self {
+            TerminalUser::Keeper => "Keeper",
+            TerminalUser::Seeker => "Seeker",
+            TerminalUser::Seeker2 => "Seeker2",
+        }
+    }
+
+    fn colored_name(&self) -> String {
+        match self {
+            TerminalUser::Keeper => self.as_str().green(),
+            TerminalUser::Seeker | TerminalUser::Seeker2 => self.as_str().red(),
+        }
+        .to_string()
     }
 }
 
