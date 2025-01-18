@@ -1,5 +1,5 @@
 // ui.rs
-use crate::game::*;
+use crate::game::Score;
 use colored::Colorize;
 use std::io;
 
