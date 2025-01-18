@@ -10,6 +10,14 @@ pub enum Player {
 }
 
 impl Ui for Player {
+    fn display_guesses(&self, guesses: &Vec<(String, Score)>) {
+        let formatted = [
+            vec!["Previous Guesses:".to_string()],
+            format_guesses(&guesses),
+        ]
+        .concat();
+        self.display_message(&formatted.join("\n\t"));
+    }
 }
 
 impl Player {
@@ -42,15 +50,6 @@ impl Player {
             .read_line(&mut input)
             .expect("Failed to read new secret");
         input.trim().to_string()
-    }
-
-    pub fn display_guesses(&self, guesses: &Vec<(String, Score)>) {
-        let formatted = [
-            vec!["Previous Guesses:".to_string()],
-            format_guesses(&guesses),
-        ]
-        .concat();
-        self.display_message(&formatted.join("\n\t"));
     }
 
     pub fn display_guesses_colorified(&self, guesses: &Vec<(String, Score)>, secret: &str) {
