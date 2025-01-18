@@ -38,7 +38,7 @@ impl GameLoop {
     pub fn take_input(&mut self, input: &str) {
         match self.player {
             Player::Keeper => self.do_change_secret(input),
-            Player::Seeker => self.do_guess(input),
+            Player::Seeker | Player::Seeker2 => self.do_guess(input),
         }
     }
 
@@ -62,7 +62,8 @@ impl GameLoop {
     fn switch_player(&mut self) {
         match self.player {
             Player::Keeper => self.player = Player::Seeker,
-            Player::Seeker => self.player = Player::Keeper,
+            Player::Seeker => self.player = Player::Seeker2,
+            Player::Seeker2 => self.player = Player::Keeper
         }
         //move this to UI
         print!("{}[2J", 27 as char);

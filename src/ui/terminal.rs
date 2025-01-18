@@ -7,6 +7,7 @@ use super::Score;
 pub enum Player {
     Keeper,
     Seeker,
+    Seeker2
 }
 
 impl Ui for Player {
@@ -25,13 +26,14 @@ impl Player {
         match self {
             Player::Keeper => "Keeper",
             Player::Seeker => "Seeker",
+            Player::Seeker2 => "Seeker2",
         }
     }
 
     fn colored_name(&self) -> String {
         match self {
             Player::Keeper => self.as_str().green(),
-            Player::Seeker => self.as_str().red(),
+            Player::Seeker | Player::Seeker2 => self.as_str().red(),
         }
         .to_string()
     }
@@ -43,7 +45,7 @@ impl Player {
     pub fn read_input(&self) -> String {
         self.display_message(&match self {
             Player::Keeper => "Enter the new secret code (digits only):",
-            Player::Seeker => "Enter your guess:",
+            Player::Seeker | Player::Seeker2 => "Enter your guess:",
         });
         let mut input = String::new();
         io::stdin()
