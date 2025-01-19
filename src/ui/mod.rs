@@ -8,4 +8,10 @@ pub trait Ui {
     fn display_guesses_with_info(&self, guesses: &Vec<(String, Score)>, secret: &str);
     fn display_message(&self, message: &str);
     fn read_input(&self) -> String;
+    fn display_score(&self, score:&Score);
+}
+
+pub enum UiBehavior {
+    Informed,
+    Ignorant,
 }

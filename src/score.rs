@@ -8,8 +8,4 @@ impl Score {
     pub fn new(bulls: usize, cows: usize) -> Self {
         Score { bulls, cows }
     }
-
-    pub fn display(&self) -> String {
-        format!("Bulls: {}, Cows: {}", self.bulls, self.cows)
-    }
 }

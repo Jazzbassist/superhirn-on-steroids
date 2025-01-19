@@ -1,6 +1,11 @@
+use std::collections::VecDeque;
+use std::mem::swap;
+
 use crate::game::ErrResponse;
 use crate::game::Game;
-use crate::ui::{terminaluser::TerminalUser, Ui};
+use crate::ui::Ui;
+use crate::ui::terminaluser::TerminalUi;
+use crate::ui::UiBehavior;
 
 #[allow(dead_code)]
 #[derive(PartialEq)]
@@ -13,32 +18,59 @@ pub enum Variant {
 pub struct GameLoop {
     game: Game,
     variant: Variant,
-    player: TerminalUser,
+    players: VecDeque<Gamer>,
+    gamer: Gamer,
     is_over: bool,
     guess_buffer: String,
     secret_buffer: String,
 }
 
+pub enum PlayerType {
+    Keeper,
+    Seeker,
+}
+
+pub struct Gamer {
+    ui: TerminalUi,
+    typus: PlayerType,
+}
+
+impl Gamer {
+    pub fn new(player_type: PlayerType) -> Gamer{
+        Gamer {
+            ui: TerminalUi::new(match player_type {
+                PlayerType::Keeper => UiBehavior::Informed,
+                PlayerType::Seeker => UiBehavior::Ignorant,
+            }),
+            typus: player_type,
+        }
+    }
+}
+
 impl GameLoop {
     pub fn new(variant: Variant) -> GameLoop {
+        let mut player_queue = VecDeque::new();
+        player_queue.push_back(Gamer::new(PlayerType::Seeker));
         GameLoop {
             game: Game::new(),
             variant,
-            player: TerminalUser::Keeper,
+            players: player_queue,
+            gamer: Gamer::new(PlayerType::Keeper),
             is_over: false,
             guess_buffer: "".to_string(),
             secret_buffer: "".to_string(),
+            //specify ui here?
         }
     }
 
     pub fn prompt_input(&mut self) -> String {
-        self.player.read_input()
+        self.gamer.ui.read_input()
     }
 
     pub fn take_input(&mut self, input: &str) {
-        match self.player {
-            TerminalUser::Keeper => self.do_change_secret(input),
-            TerminalUser::Seeker | TerminalUser::Seeker2 => self.do_guess(input),
+        match self.gamer.typus {
+            PlayerType::Keeper => self.do_change_secret(input),
+            PlayerType::Seeker => self.do_guess(input),
         }
     }
 
@@ -60,18 +92,15 @@ impl GameLoop {
     }
 
     fn switch_player(&mut self) {
-        match self.player {
-            TerminalUser::Keeper => self.player = TerminalUser::Seeker,
-            TerminalUser::Seeker => self.player = TerminalUser::Seeker2,
-            TerminalUser::Seeker2 => self.player = TerminalUser::Keeper
-        }
+        swap(&mut self.gamer, self.players.front_mut().unwrap());
+        self.players.rotate_left(1);
         //move this to UI
         print!("{}[2J", 27 as char);
         self.print_state();
     }
 
     fn print_state(&self) {
-        self.player
+        self.gamer.ui
             .display_guesses(self.game.get_previous_guesses());
     }
 
@@ -82,11 +111,13 @@ impl GameLoop {
                 self.handle_successful_secret_change(new_secret);
             }
             Err(response) => {
-                self.player.display_message(&response.message());
+                self.gamer.ui.display_message(&response.message());
                 match response {
-                    ErrResponse::GuessMismatch(guesses) => self
-                        .player
-                        .display_guesses_with_info(&guesses, &new_secret),
+                    ErrResponse::GuessMismatch(guesses) => 
+                    self
+                    .gamer
+                    .ui
+                    .display_guesses_with_info(&guesses, &new_secret),
                     _ => (),
                 }
             }
@@ -118,11 +149,11 @@ impl GameLoop {
         let result = self.game.handle_guess(new_guess);
         match result {
             Ok(score) => {
-                self.player.display_message(&score.display());
+                self.gamer.ui.display_score(&score);
                 if score.bulls == self.game.get_secret_len() {
-                    self.player
+                    self.gamer.ui
                         .display_message("Congratulations! You've guessed the secret.");
-                    self.player.display_guesses_with_info(
+                    self.gamer.ui.display_guesses_with_info(
                         self.game.get_previous_guesses(),
                         &self.game.get_secret(),
                     );
@@ -131,7 +162,7 @@ impl GameLoop {
                 self.switch_player();
             }
             Err(msg) => {
-                self.player.display_message(msg);
+                self.gamer.ui.display_message(msg);
             }
         }
     }
